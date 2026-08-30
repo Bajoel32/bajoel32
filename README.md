@@ -30,11 +30,9 @@ A dedicated control panel for administrators to manage e-commerce operations alo
 
 ---
 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 ## 🏗️ System Architecture
 
-
+```text
 [ Customer Client ] ──► [ E-Commerce App + AI Chatbot ]
                                 │
                                 ▼
@@ -42,48 +40,4 @@ A dedicated control panel for administrators to manage e-commerce operations alo
                                               │ (Update Knowledge & Functions)
 [ Admin / Manager ] ──► [    Admin Hub    ] ──┘
 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-🛠️ Tech Stack
-Frontend: React.js (Vite), Tailwind CSS
-
-Backend: Node.js (Express) / Python (FastAPI)
-
-AI & RAG Pipeline: LangChain / LlamaIndex, OpenAI / Gemini API
-
-Vector Database: Pinecone / Qdrant / Pgvector
-
-Database: PostgreSQL / MongoDB
-
-🚀 Getting Started Locally
-Prerequisites
-Node.js (v18 or higher)
-
-npm / yarn / pnpm
-
-Installation
-Clone the repository:
-
-```Bash
-git clone [https://github.com/Bajoel32/github.io.git](https://github.com/Bajoel32/github.io.git)
-cd github.io
-Install dependencies:```
-
-```Bash
-npm install
-Set up Environment Variables:
-Create a .env file in the root directory and add your keys:```
-
-```Code snippet
-VITE_API_BASE_URL=your_backend_api_url
-VITE_AI_CHATBOT_ENDPOINT=your_chatbot_endpoint
-Run the local development server:```
-
-```Bash
-npm run dev
-🤝 Contributing```
-
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page if you want to contribute.
-
-📄 License
-This project is licensed under the MIT License.
