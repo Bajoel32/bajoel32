@@ -1,0 +1,46 @@
+# Blueprint Render untuk backend API (folder server/).
+# Pakai: Render Dashboard -> New -> Blueprint -> pilih repo ini.
+# Semua envVars "sync: false" WAJIB diisi manual di dashboard setelah service dibuat.
+services:
+  - type: web
+    name: srikandi-api
+    runtime: node
+    rootDir: server
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    # Render menerminasi TLS di edge & redirect HTTP->HTTPS otomatis (tak perlu
+    # setelan). App juga punya lapis cadangan httpsRedirect + HSTS via helmet.
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_TTL
+        value: "86400"
+      - key: ADMIN_SESSION_TTL
+        value: "43200"
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5
+      - key: CONSULT_DAILY_LLM_BUDGET
+        value: "300"
+      - key: DATA_RETENTION_DAYS
+        value: "90"
+      # --- isi manual di dashboard ---
+      - key: DATABASE_URL          # connection string Neon (?sslmode=require)
+        sync: false
+      - key: DATA_ENCRYPTION_KEY   # 32-byte base64 — npm run gen:datakey (jangan diganti setelah ada data)
+        sync: false
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD_HASH   # hasil: npm run admin:hash -- "sandi"
+        sync: false
+      - key: CORS_ORIGINS          # https://bajoel32.github.io
+        sync: false
+      - key: ADMIN_ORIGINS         # URL Render Static Site admin hub
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: WHATSAPP_BASE
+        sync: false
