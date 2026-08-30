@@ -1,0 +1,23 @@
+# Security headers — applied by Netlify / Cloudflare Pages on every response.
+# For Vercel use vercel.json, for Nginx a `add_header` block, for Apache .htaccess.
+#
+# NOTE: GitHub Pages (target deploy saat ini, lihat vite.config.js) TIDAK membaca
+# file ini. Di GitHub Pages: aktifkan "Enforce HTTPS" di Settings > Pages
+# (redirect HTTP->HTTPS + HSTS untuk *.github.io ditangani GitHub). CSP di bawah
+# tidak berlaku di sana — pindah ke Netlify/Cloudflare Pages bila CSP wajib.
+#
+# CSP origins below match what the app actually loads:
+#   - Google Fonts CSS  -> https://fonts.googleapis.com
+#   - Google Fonts files -> https://fonts.gstatic.com
+#   - Gallery images     -> https://images.unsplash.com
+# Tighten/adjust when those change.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
