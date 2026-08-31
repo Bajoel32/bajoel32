@@ -288,7 +288,7 @@ function HomePage({ setCurrentPage, mobileMenuOpen, setMobileMenuOpen }) {
         <div className="fluid-shell">
           <div className="flex flex-col items-center text-center mb-14 sm:mb-16">
             <SectionEyebrow index="04" label="Lokasi" />
-            <h2 className="display-lg text-ink-900 mt-5 mb-4">Kunjungi Butik Kami</h2>
+            <h2 className="display-lg text-ink-900 mt-5 mb-4">Kunjungi Toko Kami</h2>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[1fr_1.4fr] items-stretch">
