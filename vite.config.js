@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Deploy ke user site https://bajoel32.github.io (dilayani dari root).
-  // Kalau nanti pindah ke project site (mis. github.io/nama-repo), ubah jadi '/nama-repo/'.
-  base: '/',
+  // Deploy ke project site https://bajoel32.github.io/bajoel32/ (dilayani dari sub-path).
+  // Harus sama dengan nama repo. Kalau repo di-rename jadi user-site (Bajoel32.github.io), ubah ke '/'.
+  base: '/bajoel32/',
   plugins: [react()],
   css: {
     postcss: './postcss.config.js',

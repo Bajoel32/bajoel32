@@ -186,12 +186,15 @@ npm run build
 
 ## 7. Deploy
 
-**Target saat ini: GitHub Pages** (user site `bajoel32.github.io`, `base: '/'` di
-`vite.config.js`). Alurnya otomatis lewat [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
+**Target saat ini: GitHub Pages** — project site `https://bajoel32.github.io/bajoel32/`,
+jadi `base: '/bajoel32/'` di `vite.config.js` (harus sama dengan nama repo).
+Alurnya otomatis lewat [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
 
 1. Push ke `main` → workflow jalan `npm ci` + `npm run build` + `actions/deploy-pages`.
-2. Di repo: **Settings → Pages → "Enforce HTTPS"** (GitHub menangani redirect HTTP→HTTPS + HSTS untuk `*.github.io`).
+2. Di repo: **Settings → Pages → Source: GitHub Actions**, lalu **"Enforce HTTPS"** (GitHub menangani redirect HTTP→HTTPS + HSTS untuk `*.github.io`).
 3. (Opsional) set secret `VITE_SALES_PASSPHRASE_SHA256` untuk gerbang panel sales.
+
+> Kalau repo di-rename jadi user-site (`Bajoel32.github.io`), ubah `base` kembali ke `'/'`.
 
 > **`public/_headers` TIDAK dibaca GitHub Pages.** CSP di file itu hanya berlaku bila
 > dipindah ke **Netlify / Cloudflare Pages** (dipakai otomatis), **Vercel** (`vercel.json` →
