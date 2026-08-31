@@ -9,6 +9,7 @@ export const siteConfig = {
   navigation: [
     { label: 'Keunggulan', href: '#features' },
     { label: 'Koleksi', href: '#showcase' },
+    { label: 'Lokasi', href: '#lokasi' },
     { label: 'Layanan', href: '#contact' },
     { label: 'Kontak', href: '#contact' },
   ],
@@ -65,6 +66,20 @@ export const siteConfig = {
     title: 'Wujudkan Perhiasan Impian Anda',
     subtitle: 'Konsultasikan desain, perawatan, atau perbaikan perhiasan Anda bersama pengrajin kami.',
     buttonText: 'Mulai Konsultasi',
+  },
+
+  // Lokasi toko — dipakai di section "Lokasi" pada Home (peta + alamat + jam buka).
+  // `mapQuery` dipakai untuk embed peta & tombol arah; ganti dengan alamat/nama
+  // yang paling tepat, atau tempel koordinat "lat,lng" bila punya.
+  location: {
+    name: 'Toko Emas Srikandi Palangkaraya',
+    address: 'Jl. Sumatra, Pahandut, Kec. Pahandut',
+    city: 'Kota Palangka Raya, Kalimantan Tengah 74874',
+    hours: [
+      { day: 'Senin – Sabtu', time: '09.00 – 16.00' },
+      { day: 'Minggu', time: '10.00 – 16.00' },
+    ],
+    mapQuery: 'Toko Emas Srikandi, Jl. Sumatra, Pahandut, Palangka Raya',
   },
 
   // Media sosial — tampil di pojok kanan atas (navbar) dengan label "Follow kami"
