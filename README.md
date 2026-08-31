@@ -1,8 +1,102 @@
 # 🪙 Srikandi — Jewelry Storefront with an AI Consultation Assistant
 
-🌐 Live site: <https://bajoel32.github.io/bajoel32/>
+**🌐 Live site:** <https://bajoel32.github.io/bajoel32/>
 
-A modern e-commerce platform for a jewelry store featuring an **AI-powered Chatbot** driven by **Retrieval-Augmented Generation (RAG)**, along with a standalone **Admin Hub** designed for managing AI knowledge bases, dynamic custom functions, and store operations.
+A storefront for a gold & jewellery shop (Toko Emas Srikandi, Palangka Raya) with an
+**AI consultation assistant** built on **Anthropic Claude** — retrieval-augmented answers
+over a curated knowledge base, **function/tool calling** into store data, a **4-layer
+guard rail**, and hard **cost controls**.
+
+> **Scope of this repo:** the **storefront frontend** (`src/`, React + Vite, deployed to
+> GitHub Pages). The Express **API / AI backend** (`server/`) is developed in a separate
+> repo — code references to `server/…` in the docs point there. See
+> [DEVELOPMENT.md](DEVELOPMENT.md) for the frontend guide and
+> [docs/konsultasi-ai/](docs/konsultasi-ai/) for the full backend contract.
+
+---
+
+## 📸 Screenshots
+
+| Home | Catalogue |
+|---|---|
+| ![Home](docs/screenshots/home.png) | ![Gallery](docs/screenshots/gallery.png) |
+
+| **AI Consultation** — RAG answer + a `infoLayanan` tool-result card + retrieved source | Booking / service request |
+|---|---|
+| ![Consultation](docs/screenshots/consultation.png) | ![Booking](docs/screenshots/booking.png) |
+
+*(The standalone Admin Hub is a separate app and is not yet built/deployed — no screenshot.)*
+
+---
+
+## 🌟 What it does
+
+### Customer-facing (this repo)
+* **Catalogue** — collections, category filter + search, gold-purity / weight, a
+  **manually-maintained gold-price estimate** card (clearly labelled *not* a live feed).
+* **Order portal** — phone + password (bcrypt) login, per-customer order tracking.
+* **Service booking** — validated form with an anti-bot honeypot.
+* **AI Consultation assistant** — chat UI backed by `POST /api/consult`
+  (RAG + Claude tool-calling, with a zero-cost keyword fallback).
+
+### Backend (separate repo — `server/`)
+* Express API: bookings, auth/sessions, orders, gallery, `/api/consult`, `/api/admin/*`.
+* AES-256-GCM **encryption at rest** for customer collections; PII retention sweeper.
+* **Admin Hub API** (`/api/admin/*`, bcrypt-session) — CRUD for the knowledge base,
+  services and gallery; RAG parameter tuning; a stats endpoint. A dedicated admin
+  **frontend** app is planned, not built.
+
+---
+
+## 🧠 AI / LLM Tech Stack
+
+| Concern | What is actually used | Notes |
+|---|---|---|
+| **LLM provider** | **Anthropic Claude** via **`@anthropic-ai/sdk` `^0.32`** | server-side only; the key never reaches the browser |
+| **API surface** | **Messages API** — `client.messages.create({ system, tools, messages })`, non-streaming, `max_tokens: 1024` | streaming (SSE) is on the roadmap |
+| **Model** | `ANTHROPIC_MODEL` env — default **`claude-opus-5`**; `claude-sonnet-5` / `claude-haiku-4-5` for lower cost | swappable without code changes |
+| **Orchestration framework** | **None** — a hand-rolled tool-use loop (max **4 hops**) in `server/src/lib/claude.js` | deliberate: no LangChain / LlamaIndex; the whole backend has 9 runtime deps |
+| **Retriever** | **Keyword / bag-of-words** scorer over the `kb` collection (`server/src/lib/rag.js`) | **no embeddings, no vector DB** — see [RAG Pipeline](#-rag-pipeline) and [Roadmap](#-observability--evaluation) |
+| **Embedding model** | *none yet* | roadmap item |
+| **Vector store** | *none yet* — knowledge base is JSON (dev) or a Postgres `jsonb` blob | roadmap: pgvector / Qdrant |
+| **Fallback path** | `fallbackConsult()` — regex/keyword matching, **0 API cost** | serves anonymous users, missing-key, and over-budget requests |
+| **Guard rails** | 4 layers (client input, server prompt-injection screen, prompt hardening, output redaction) | [details below](#-llm-safety--cost-controls) |
+| **Cost controls** | soft-gate (LLM only for logged-in members) · persisted daily call budget · layered rate limits | [details below](#-llm-safety--cost-controls) |
+
+Frontend: **React 19 + Vite 8 + Tailwind CSS v4**. Backend: **Node + Express 4**, `zod`,
+`helmet`, `express-rate-limit`, `bcryptjs`, `pg`.
+
+---
+
+## 🔍 RAG Pipeline
+
+**Knowledge base.** A curated JSON array — `server/data/kb.json` — seeded with ~12 entries,
+each of shape:
+
+```json
+{ "id": 7, "title": "Kebijakan pembatalan", "text": "Pembatalan dapat dilakukan dalam 24 jam …", "url": null }
+```
+
+**Chunking / indexing.** There is no automated splitter: **each KB entry *is* one chunk**
+(1–3 sentences, authored by hand or via the Admin Hub). Kept deliberately short so a
+keyword match maps cleanly to a self-contained answer. No embeddings are computed;
+"indexing" is just loading the array into memory on boot.
+
+**Retrieval algorithm** (`retrieve(query)` in `server/src/lib/rag.js`):
+
+1. **Tokenise** the query — lowercase → strip non-alphanumerics → split on whitespace →
+   drop tokens ≤ 2 chars and ~22 Indonesian/English stop-words (`yang`, `dan`, `apa`, `the`, …).
+2. **Score every KB entry** — build a token set for `title + text` and a set for `title` only:
+   `+1.0` per query token found in the body set, `+1.5` if it is also in the title set.
+3. **Filter** `score ≥ minScore` (default **0.5**), sort descending, take the top **`topK`**
+   (default **4**). `topK` and `minScore` are runtime-tunable from the Admin Hub
+   (`settings` collection, key `rag`).
+4. Return each hit as `{ title, snippet: text.slice(0, 240), url }` — surfaced to the user
+   under an **"N Sources"** disclosure in the chat UI.
+
+**Prompt assembly.** The retrieved snippets are injected as a `KONTEKS` block in a leading
+user turn; the system prompt instructs the model to answer **only** from that context or
+the tool results, and to escalate otherwise.
 
 ---
 
