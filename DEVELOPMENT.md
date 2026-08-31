@@ -4,7 +4,12 @@ Landing page + halaman pesanan, layanan, dan galeri untuk toko perhiasan.
 Dokumen ini dibuat supaya kamu **cepat menemukan file yang perlu diubah** dan
 **tahu cara memperbaiki** kalau ada error.
 
-- **Stack:** React 19, Vite 8, Tailwind CSS v4 — plus backend Node + Express di [`server/`](server/) (lihat §9)
+> **Repo ini hanya frontend** (storefront React/Vite) + dokumentasi. Kode backend
+> (`server/` — Node + Express, RAG + Claude, admin hub) ada di **repo terpisah**.
+> Referensi `server/...` dan tautan `../../server/...` di folder [`docs/`](docs/)
+> menunjuk ke repo backend itu, bukan ke sini.
+
+- **Stack:** React 19, Vite 8, Tailwind CSS v4 (backend Node + Express ada di repo terpisah — lihat §9)
 - **Sifat:** frontend bisa jalan sendiri (mode dummy) atau tersambung ke backend nyata — lihat [SECURITY.md](docs/konsultasi-ai/SECURITY.md) untuk status keamanan keduanya
 - **Bahasa build:** JavaScript (`.jsx`), bukan TypeScript
 

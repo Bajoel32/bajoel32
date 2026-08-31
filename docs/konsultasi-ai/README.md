@@ -1,5 +1,9 @@
 # Dokumentasi: Form "Mulai Konsultasi" sebagai Chatbot AI
 
+> **Catatan repo:** repo ini hanya berisi **frontend** + dokumentasi. Tautan
+> `../../server/...` di bawah menunjuk ke **repo backend terpisah** (Node + Express).
+> File `../../src/...` tetap valid (ada di repo ini).
+
 Folder ini berisi panduan untuk **mengaktifkan** halaman konsultasi
 ([`src/components/ConsultationPage.jsx`](../../src/components/ConsultationPage.jsx),
 dibuka oleh tombol **"Mulai Konsultasi"**) sebagai chatbot AI sungguhan
