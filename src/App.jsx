@@ -283,11 +283,74 @@ function HomePage({ setCurrentPage, mobileMenuOpen, setMobileMenuOpen }) {
         </div>
       </section>
 
+      {/* Location Section */}
+      <section id="lokasi" className="section-y bg-cream-50 border-b border-cream-200">
+        <div className="fluid-shell">
+          <div className="flex flex-col items-center text-center mb-14 sm:mb-16">
+            <SectionEyebrow index="04" label="Lokasi" />
+            <h2 className="display-lg text-ink-900 mt-5 mb-4">Kunjungi Butik Kami</h2>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-[1fr_1.4fr] items-stretch">
+            <div className="flex flex-col justify-center rounded-2xl bg-white border border-cream-200 p-[clamp(1.5rem,4vw,2.5rem)]">
+              <h3 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900 mb-4">
+                {siteConfig.location.name}
+              </h3>
+              <p className="text-ink-600 leading-[1.7]">
+                {siteConfig.location.address}
+                <br />
+                {siteConfig.location.city}
+              </p>
+
+              <div className="mt-6">
+                <p className="eyebrow mb-2">Jam Buka</p>
+                <ul className="space-y-1.5 text-sm">
+                  {siteConfig.location.hours.map((h) => (
+                    <li key={h.day} className="flex justify-between gap-4 text-ink-700">
+                      <span>{h.day}</span>
+                      <span className="font-semibold text-ink-900">{h.time}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(siteConfig.location.mapQuery)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="primary" size="md">Petunjuk Arah</Button>
+                </a>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(siteConfig.location.mapQuery)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" size="md">Buka di Google Maps</Button>
+                </a>
+              </div>
+            </div>
+
+            <div className="rounded-2xl overflow-hidden border border-cream-200 bg-white min-h-72">
+              <iframe
+                title={`Peta lokasi ${siteConfig.location.name}`}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(siteConfig.location.mapQuery)}&output=embed`}
+                className="w-full h-full min-h-72 border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section id="contact" className="relative section-y bg-ink-900 overflow-hidden">
         <div className="absolute inset-0 bg-gold-grid opacity-60" />
         <div className="fluid-shell relative max-w-3xl flex flex-col items-center text-center">
-          <SectionEyebrow index="04" label="Mulai Sekarang" tone="light" />
+          <SectionEyebrow index="05" label="Mulai Sekarang" tone="light" />
           <h2 className="display-xl text-cream-50 mt-5 mb-6">
             {siteConfig.cta.title}
           </h2>
