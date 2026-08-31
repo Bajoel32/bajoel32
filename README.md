@@ -1,6 +1,10 @@
 # 🪙 Jewelry Store E-Commerce with AI Chatbot & Admin Hub
 
+**🌐 Live site:** <https://bajoel32.github.io/bajoel32/>
+
 A modern e-commerce platform for a jewelry store featuring an **AI-powered Chatbot** driven by **Retrieval-Augmented Generation (RAG)**, along with a standalone **Admin Hub** designed for managing AI knowledge bases, dynamic custom functions, and store operations.
+
+> The storefront frontend lives in this repo (`src/`, deployed to GitHub Pages via the `gh-pages` branch). Backend code (`server/`) is maintained separately. See [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ---
 
@@ -39,3 +43,4 @@ A dedicated control panel for administrators to manage e-commerce operations alo
                        [ RAG & Vector DB ] ◄──┐
                                               │ (Update Knowledge & Functions)
 [ Admin / Manager ] ──► [    Admin Hub    ] ──┘
+```
