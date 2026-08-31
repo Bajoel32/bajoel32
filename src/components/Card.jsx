@@ -16,26 +16,23 @@ export default function Card({
   variant = 'default',
 }) {
   const variants = {
-    default:
-      'bg-white dark:bg-ink-800 border border-gold-200/70 dark:border-ink-700',
-    elevated:
-      'bg-white dark:bg-ink-800 border border-gold-200/60 dark:border-ink-700 shadow-elegant',
-    outlined:
-      'bg-transparent border border-gold-300 dark:border-gold-700/60',
+    default: 'bg-white border border-cream-200',
+    elevated: 'bg-white border border-cream-200 shadow-elegant',
+    outlined: 'bg-transparent border border-gold-300',
   };
 
   return (
     <div
       className={`
         rounded-2xl overflow-hidden ${variants[variant]} transition-all duration-300
-        ${hoverable ? 'hover:-translate-y-1 hover:shadow-elegant hover:border-gold-400 cursor-pointer' : ''}
+        ${hoverable ? 'hover:-translate-y-1 hover:border-gold-400 hover:shadow-elegant cursor-pointer' : ''}
         ${onClick ? 'cursor-pointer' : ''}
         ${className}
       `}
       onClick={onClick}
     >
       {image && (
-        <div className="w-full h-44 sm:h-52 bg-cream-100 dark:bg-ink-900 overflow-hidden">
+        <div className="w-full h-44 sm:h-52 bg-cream-100 overflow-hidden">
           <img src={image} alt={title} className="w-full h-full object-cover" loading="lazy" />
         </div>
       )}
@@ -44,9 +41,9 @@ export default function Card({
         <div className="flex items-start gap-3 mb-3">
           {icon && iconTile && (
             <div
-              className={`w-11 h-11 sm:w-12 sm:h-12 shrink-0 rounded-xl flex items-center justify-center text-lg sm:text-xl shadow-gold ${
+              className={`w-11 h-11 sm:w-12 sm:h-12 shrink-0 rounded-xl flex items-center justify-center text-lg sm:text-xl ${
                 tileColor === 'gold'
-                  ? 'bg-linear-to-br from-gold-400 to-gold-600 text-ink-900'
+                  ? 'bg-gold-400 text-ink-900'
                   : 'bg-ink-900 text-gold-400'
               }`}
             >
@@ -56,12 +53,12 @@ export default function Card({
           {icon && !iconTile && <div className="text-2xl sm:text-3xl shrink-0 leading-none">{icon}</div>}
           <div className={`min-w-0 flex-1 ${textClassName}`}>
             {title && (
-              <h3 className="font-display text-lg sm:text-xl font-semibold text-ink-900 dark:text-cream-50 truncate">
+              <h3 className="font-display text-xl sm:text-2xl font-semibold text-ink-900 truncate">
                 {title}
               </h3>
             )}
             {subtitle && (
-              <p className="text-xs sm:text-sm font-semibold tracking-[0.14em] uppercase text-gold-600 dark:text-gold-300 mt-1">
+              <p className="text-[0.7rem] sm:text-xs font-semibold tracking-[0.18em] uppercase text-mute mt-1">
                 {subtitle}
               </p>
             )}
@@ -69,7 +66,7 @@ export default function Card({
         </div>
 
         {description && (
-          <p className={`text-sm sm:text-[0.95rem] leading-relaxed text-ink-600 dark:text-cream-200/80 mb-4 ${textClassName}`}>
+          <p className={`text-sm sm:text-[0.95rem] leading-relaxed text-ink-600 mb-4 ${textClassName}`}>
             {description}
           </p>
         )}
@@ -77,7 +74,7 @@ export default function Card({
         {children && <div>{children}</div>}
 
         {footer && (
-          <div className="mt-4 pt-4 border-t border-gold-200/70 dark:border-ink-700 text-sm">
+          <div className="mt-4 pt-4 border-t border-cream-200 text-sm">
             {footer}
           </div>
         )}

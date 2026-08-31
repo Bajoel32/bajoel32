@@ -14,6 +14,10 @@ export const siteConfig = {
   ],
 
   hero: {
+    subtitle: 'La Maison Srikandi',
+    title: 'Dibentuk oleh Cahaya',
+    description:
+      'Perhiasan emas dan berlian pilihan, dikerjakan tangan pengrajin kami dengan ketelitian dan cinta — untuk setiap momen yang berarti.',
     primaryCTA: { text: 'Lihat Pesanan', action: 'explore' },
     secondaryCTA: { text: 'Jelajahi Galeri', action: 'gallery' },
   },

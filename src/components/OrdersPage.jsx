@@ -65,9 +65,9 @@ export default function OrdersPage({ onBack }) {
   return (
     <div className="w-full min-h-screen bg-cream-50 dark:bg-ink-900">
       {/* Header */}
-      <div className="relative bg-cream-100 dark:bg-ink-800/40 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-gold-200/70 dark:border-ink-700 overflow-hidden">
+      <div className="relative bg-cream-100 dark:bg-ink-800/40 section-y-sm border-b border-gold-200/70 dark:border-ink-700 overflow-hidden">
         <div className="pointer-events-none absolute -top-24 right-0 h-72 w-72 rounded-full bg-gold-200/40 dark:bg-gold-600/10 blur-3xl" />
-        <div className="relative max-w-5xl mx-auto">
+        <div className="relative fluid-shell max-w-5xl">
           <div className="flex items-center justify-between gap-4 mb-8">
             <BackButton onClick={onBack} />
             {session && (
@@ -77,7 +77,7 @@ export default function OrdersPage({ onBack }) {
             )}
           </div>
           <span className="eyebrow">Area Konsumen</span>
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-ink-900 dark:text-cream-50 mt-3 mb-3">
+          <h1 className="display-md text-ink-900 dark:text-cream-50 mt-3 mb-3">
             {session ? `Halo, ${session.customer.name.split(' ')[0]}` : 'Lihat Pesanan Anda'}
           </h1>
           <p className="text-sm sm:text-base text-ink-600 dark:text-cream-200/70 max-w-xl">
@@ -89,8 +89,8 @@ export default function OrdersPage({ onBack }) {
       </div>
 
       {/* Content */}
-      <div className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
+      <div className="section-y-sm">
+        <div className="fluid-shell max-w-5xl">
           {booting ? (
             <p className="text-center text-sm text-ink-600 dark:text-cream-200/60 py-16">Memuat…</p>
           ) : session ? (
@@ -131,7 +131,7 @@ function LoginView({ onLoggedIn }) {
       <form onSubmit={submit} className="bg-white dark:bg-ink-800 rounded-2xl border border-gold-200/70 dark:border-ink-700 shadow-elegant p-6 sm:p-8 space-y-5">
         <div>
           <span className="eyebrow">Masuk</span>
-          <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink-900 dark:text-cream-50 mt-2">
+          <h2 className="display-sm text-ink-900 dark:text-cream-50 mt-2">
             Portal Pesanan
           </h2>
         </div>
@@ -219,7 +219,7 @@ function LoggedInView({ orders, loading, customer }) {
       </div>
 
       {orders.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="auto-grid [--col-min:19rem]">
           {orders.map((order) => (
             <OrderCard
               key={order.id}

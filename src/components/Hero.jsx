@@ -13,9 +13,9 @@ export default function Hero({
   showImage = false,
 }) {
   const sizeClasses = {
-    compact: 'py-10 sm:py-14 lg:py-16',
-    small: 'py-14 sm:py-20 lg:py-24',
-    large: 'py-16 sm:py-24 lg:py-28',
+    compact: 'py-[clamp(3rem,7vw,6rem)]',
+    small: 'py-[clamp(3.5rem,8vw,7rem)]',
+    large: 'section-y',
     full: 'min-h-screen flex items-center py-20 sm:py-24 lg:py-0',
   };
 
@@ -27,27 +27,18 @@ export default function Hero({
 
   const content = (
     <div className={`flex flex-col ${layoutClasses[layout]}`}>
-      {subtitle && (
-        <span className="eyebrow mb-5 flex items-center gap-3">
-          <span className="gold-rule" />
-          {subtitle}
-          <span className="gold-rule" />
-        </span>
-      )}
-      {!subtitle && !title && (
-        <span className="mb-6 flex items-center gap-3">
-          <span className="gold-rule" />
-          <span className="text-gold-500 dark:text-gold-400 text-sm leading-none">✦</span>
-          <span className="gold-rule" />
-        </span>
-      )}
+      <span className="mb-6 flex items-center gap-3">
+        <span className="eyebrow-index">01</span>
+        <span className="gold-rule" />
+        {subtitle ? <span className="eyebrow">{subtitle}</span> : null}
+      </span>
       {title && (
-        <h1 className="font-display text-4xl xs:text-5xl sm:text-6xl lg:text-7xl font-semibold text-ink-900 dark:text-cream-50 mb-6 leading-[1.05]">
+        <h1 className="display-xl text-ink-900 mb-7">
           {title}
         </h1>
       )}
       {description && (
-        <p className="text-base sm:text-lg lg:text-xl text-ink-600 dark:text-cream-200/80 mb-9 max-w-xl leading-relaxed">
+        <p className="text-base sm:text-lg text-ink-600 mb-10 max-w-xl leading-[1.7]">
           {description}
         </p>
       )}
@@ -55,7 +46,7 @@ export default function Hero({
         <Button variant="primary" size="md" onClick={primaryCTA.onClick}>
           {primaryCTA.text}
         </Button>
-        <Button variant="outline" size="md" onClick={secondaryCTA.onClick}>
+        <Button variant="secondary" size="md" onClick={secondaryCTA.onClick}>
           {secondaryCTA.text}
         </Button>
       </div>
@@ -63,22 +54,19 @@ export default function Hero({
   );
 
   return (
-    <section className={`relative w-full px-4 sm:px-6 lg:px-8 overflow-hidden bg-linear-to-b from-cream-50 via-cream-50 to-cream-100 dark:from-ink-900 dark:via-ink-900 dark:to-ink-800 mt-16 ${sizeClasses[size]}`}>
-      {/* soft gold halo */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 size-152 rounded-full bg-gold-200/35 dark:bg-gold-600/10 blur-3xl" />
-
-      <div className="relative max-w-7xl mx-auto">
+    <section className={`relative w-full overflow-hidden bg-cream-50 border-b border-cream-200 mt-26 sm:mt-29 ${sizeClasses[size]}`}>
+      <div className="fluid-shell relative">
         {showImage ? (
-          <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-16">
+          <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-16">
             {imagePosition === 'left' && (
               <div className="w-full lg:flex-1">
-                <img src={image} alt="Hero" className="w-full rounded-2xl shadow-elegant ring-1 ring-gold-200/70" loading="lazy" />
+                <img src={image} alt="Hero" className="w-full rounded-2xl object-cover" loading="lazy" />
               </div>
             )}
             <div className="w-full lg:flex-1">{content}</div>
             {imagePosition === 'right' && (
               <div className="w-full lg:flex-1">
-                <img src={image} alt="Hero" className="w-full rounded-2xl shadow-elegant ring-1 ring-gold-200/70" loading="lazy" />
+                <img src={image} alt="Hero" className="w-full rounded-2xl object-cover" loading="lazy" />
               </div>
             )}
           </div>

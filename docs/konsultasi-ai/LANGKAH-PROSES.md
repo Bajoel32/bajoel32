@@ -1,7 +1,7 @@
 # Langkah Proses — "Mulai Konsultasi" → Chatbot AI + Function Sendiri
 
 Panduan berurutan. Checklist ringkasnya: [`CHECKLIST.md`](CHECKLIST.md).
-Kontrak API lengkap: [`CHATBOT.md`](../../CHATBOT.md).
+Kontrak API lengkap: [`CHATBOT.md`](CHATBOT.md).
 
 Semua perintah diasumsikan dijalankan dari root repo (`c:\SRIKANDI`) kecuali ditulis lain.
 
@@ -56,13 +56,18 @@ SESSION_TTL=86400
 
 ANTHROPIC_API_KEY=sk-ant-...          # <-- ISI dengan key asli
 ANTHROPIC_MODEL=claude-opus-5         # atau claude-sonnet-5 / claude-haiku-4-5
+CONSULT_DAILY_LLM_BUDGET=300          # plafon panggilan Claude/hari (lindungi tagihan)
 
 WHATSAPP_BASE=https://wa.me/62xxxxxxxxxxx   # nomor admin asli (fitur eskalasi)
-ADMIN_TOKEN=ganti-token-admin-ini
+
+# Untuk produksi (opsional di dev): npm run gen:datakey lalu tempel di sini.
+DATA_ENCRYPTION_KEY=
 ```
 
 - Key **hanya** di sini. Jangan pernah menaruh key di kode frontend / `.env.local`.
 - `server/.env` sudah masuk `server/.gitignore`.
+- Daftar env var lengkap (admin hub, Postgres, retensi, rotasi kunci) ada di
+  [`server/.env.example`](../../server/.env.example) dan [API-SCHEMA.md](API-SCHEMA.md) §7.
 
 ### Langkah 3. Arahkan frontend ke backend
 
@@ -85,8 +90,10 @@ cd server && npm run dev
 Harapan log:
 
 ```
-Srikandi API  ->  http://localhost:8787  (env: development)
-  CORS origins: http://localhost:5173, http://localhost:4173
+[db] mode: json-file
+[db] enkripsi at-rest: nonaktif (DATA_ENCRYPTION_KEY kosong)
+Srikandi API  ->  http://localhost:8787  (env: development, storage: json-file)
+  CORS origins: http://localhost:5173, http://localhost:4173, http://localhost:5174
 ```
 
 > Kalau muncul baris `ANTHROPIC_API_KEY kosong -> /api/consult memakai fallback kata kunci lokal`,
@@ -299,7 +306,7 @@ Cek juga:
 
 ### Langkah 12. Dokumentasikan
 
-Tambah schema `infoJamOperasional` ke [`CHATBOT.md`](../../CHATBOT.md)
+Tambah schema `infoJamOperasional` ke [`CHATBOT.md`](CHATBOT.md)
 bagian **"Function / Tool untuk Claude"**, dan catat bentuk `data`-nya
 (array `{ hari, jam }`).
 
@@ -307,18 +314,17 @@ bagian **"Function / Tool untuk Claude"**, dan catat bentuk `data`-nya
 
 ## BAGIAN 3 — Sebelum produksi
 
-1. **Perbaiki `cekStatusPesanan`**: sekarang membuka status + nama pelanggan hanya dari
-   nomor pesanan, tanpa verifikasi. Minimal minta pencocokan nama + HP, atau kaitkan ke
-   sesi login (`Authorization: Bearer` seperti `GET /api/my-orders`). Terapkan cek yang
-   sama untuk setiap tool baru yang menyentuh data pesanan/pelanggan. Lihat
-   [`SECURITY.md`](../../SECURITY.md) §2.
-2. **CORS**: `CORS_ORIGINS` di server produksi = domain frontend produksi.
+1. **`cekStatusPesanan` — SUDAH ada verifikasi kepemilikan** (nomor pesanan + nama pemesan +
+   HP terdaftar wajib cocok; jalur LLM & fallback). Untuk setiap tool baru yang menyentuh
+   data pesanan/pelanggan, terapkan cek yang sama. Lihat [`SECURITY.md`](SECURITY.md) §2.
+2. **CORS**: `CORS_ORIGINS` (+ `ADMIN_ORIGINS`) di server produksi = domain frontend produksi.
 3. **Build frontend** dengan `VITE_CONSULT_API=https://api.domainmu.com/consult`
    (atau `/api/consult` bila satu domain).
-4. **Rate limit & ukuran body** sudah ada (`consultLimiter` 20/menit/IP, body 32kb) — sesuaikan bila perlu.
-5. **Database**: ganti penyimpanan JSON-file dengan DB sungguhan. Antarmuka `db`
-   (`all/insert/update/remove/set`) di [`server/src/db.js`](../../server/src/db.js) sengaja
-   kecil supaya mudah ditukar.
+4. **Rate limit & ukuran body** sudah ada (`consultLimiter` 8/menit/IP + `consultDailyLimiter`
+   40/hari/pengirim, body 32kb, plafon LLM harian `CONSULT_DAILY_LLM_BUDGET`) — sesuaikan bila perlu.
+5. **Database**: opsi Postgres sudah ada (`DATABASE_URL`); JSON-file default untuk dev.
+   Antarmuka `db` (`all/insert/update/remove/set`) di [`server/src/db.js`](../../server/src/db.js)
+   sengaja kecil supaya mudah ditukar ke DB relasional penuh.
 6. **Streaming (disarankan)**: `runConsult` sekarang non-streaming. Untuk balasan panjang,
    pindah ke `client.messages.stream(...)` + SSE ke frontend.
 7. **RAG (disarankan)**: ganti retriever kata kunci di

@@ -30,7 +30,7 @@ services:
       # --- isi manual di dashboard ---
       - key: DATABASE_URL          # connection string Neon (?sslmode=require)
         sync: false
-      - key: DATA_ENCRYPTION_KEY   # 32-byte base64 — npm run gen:datakey (jangan diganti setelah ada data)
+      - key: DATA_ENCRYPTION_KEY   # 32-byte base64 — npm run gen:datakey. Ganti kunci hanya lewat npm run rotate:datakey (+ DATA_ENCRYPTION_KEY_OLD).
         sync: false
       - key: ADMIN_USERNAME
         sync: false

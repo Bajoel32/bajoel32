@@ -1,13 +1,13 @@
 # Portal Pesanan — Autentikasi Konsumen
 
-Halaman **"Lihat Pesanan"** ([`src/components/OrdersPage.jsx`](src/components/OrdersPage.jsx))
+Halaman **"Lihat Pesanan"** ([`src/components/OrdersPage.jsx`](../../src/components/OrdersPage.jsx))
 privat: konsumen wajib login untuk melihat progres pesanannya **sendiri**.
 
-Backend sungguhan **sudah ada** — [`server/src/routes/auth.js`](server/src/routes/auth.js) +
-[`server/src/routes/orders.js`](server/src/routes/orders.js) (bcrypt, token sesi, otorisasi
+Backend sungguhan **sudah ada** — [`server/src/routes/auth.js`](../../server/src/routes/auth.js) +
+[`server/src/routes/orders.js`](../../server/src/routes/orders.js) (bcrypt, token sesi, otorisasi
 per-`customerId`). Frontend memakainya otomatis saat `VITE_ORDERS_API` diisi di `.env.local`
 root (lihat [README.md](README.md) §9). **Tanpa** env itu, frontend jatuh ke mode dummy di
-bawah — 60 konsumen dibangkitkan lokal di [`src/config/orders.js`](src/config/orders.js),
+bawah — 60 konsumen dibangkitkan lokal di [`src/config/orders.js`](../../src/config/orders.js),
 berguna untuk demo UI tanpa menjalankan server.
 
 ## Mode dummy (tanpa `VITE_ORDERS_API`)
@@ -89,6 +89,8 @@ Detail & legenda di [SECURITY.md](SECURITY.md) §2. Ringkas untuk portal ini:
 - [x] Logout — `POST /api/auth/logout` menghapus sesi di server (token lama langsung `401`), bukan hanya di klien.
 - [x] Log akses tanpa PII mentah.
 - [x] CORS: hanya domain di `CORS_ORIGINS`.
+- [x] **Enkripsi at-rest** — koleksi `customers`, `orders`, `sessions` disimpan sebagai blob AES-256-GCM bila `DATA_ENCRYPTION_KEY` diset (`lib/datacrypt.js`); plaintext hanya di memori. Lihat [SECURITY.md](SECURITY.md) §2.
+- [x] **Retensi PII** — field `ip` di `bookings` dibuang otomatis setelah `DATA_RETENTION_DAYS` (default 90) hari (`lib/retention.js`).
 
 ## Impor 60 konsumen asli
 

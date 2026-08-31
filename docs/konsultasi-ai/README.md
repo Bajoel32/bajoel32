@@ -23,9 +23,9 @@ dibuka oleh tombol **"Mulai Konsultasi"**) sebagai chatbot AI sungguhan
   gagal, halaman memakai `mockConsult()` di
   [`src/config/consultation.js`](../../src/config/consultation.js).
 
-## Dokumen terkait (di root repo)
+## Dokumen terkait (folder ini)
 
-- [`CHATBOT.md`](../../CHATBOT.md) — kontrak API & arsitektur lengkap (request/response, schema tool, eskalasi, RAG, keamanan).
-- [`BACKEND.md`](../../BACKEND.md) — checklist kesiapan backend secara umum.
-- [`SECURITY.md`](../../SECURITY.md) — postur keamanan + gap prioritas (§2).
+- [`CHATBOT.md`](CHATBOT.md) — kontrak API & arsitektur lengkap (request/response, schema tool, eskalasi, RAG, keamanan).
+- [`BACKEND.md`](BACKEND.md) — checklist kesiapan backend secara umum.
+- [`SECURITY.md`](SECURITY.md) — postur keamanan + gap prioritas (§2).
 - [`server/README.md`](../../server/README.md) — struktur folder server.

@@ -7,23 +7,21 @@ const ACTIONS = [
 
 export default function ActionGrid({ onNavigate }) {
   return (
-    <div className="mx-4 sm:mx-6 max-w-7xl lg:mx-auto lg:w-full grid grid-cols-4 gap-2.5 sm:gap-4">
-      {ACTIONS.map((a) => (
+    <div className="fluid-shell grid grid-cols-2 sm:grid-cols-4 gap-[clamp(0.625rem,2vw,1rem)]">
+      {ACTIONS.map((a, i) => (
         <button
           key={a.label}
           onClick={() => onNavigate?.(a.page)}
-          className="flex flex-col items-center gap-2 rounded-2xl border border-gold-200/70 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 py-3.5 sm:py-4 shadow-elegant hover:-translate-y-0.5 hover:border-gold-400 transition-all"
+          className={`float-card float-card-${i} flex flex-col items-center gap-2 rounded-2xl border border-cream-200 bg-white px-2 py-[clamp(0.875rem,2.5vw,1.25rem)] hover:-translate-y-0.5 hover:border-gold-400 transition-all`}
         >
           <span
-            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-lg sm:text-xl shadow-gold ${
-              a.tile === 'gold'
-                ? 'bg-linear-to-br from-gold-400 to-gold-600 text-ink-900'
-                : 'bg-ink-900 text-gold-400'
+            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-lg sm:text-xl ${
+              a.tile === 'gold' ? 'bg-gold-400 text-ink-900' : 'bg-ink-900 text-gold-400'
             }`}
           >
             {a.icon}
           </span>
-          <span className="text-[0.68rem] sm:text-xs font-semibold text-ink-900 dark:text-cream-50 text-center leading-tight whitespace-pre-line">
+          <span className="text-[0.68rem] sm:text-xs font-semibold text-ink-900 text-center leading-tight whitespace-pre-line">
             {a.label}
           </span>
         </button>

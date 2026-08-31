@@ -55,12 +55,12 @@ export default function GalleryPage({ onBack }) {
   return (
     <div className="w-full min-h-screen bg-cream-50 dark:bg-ink-900">
       {/* Header */}
-      <div className="relative bg-cream-100 dark:bg-ink-800/40 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-gold-200/70 dark:border-ink-700 overflow-hidden">
+      <div className="relative bg-cream-100 dark:bg-ink-800/40 section-y-sm border-b border-gold-200/70 dark:border-ink-700 overflow-hidden">
         <div className="pointer-events-none absolute -top-24 right-0 h-72 w-72 rounded-full bg-gold-200/40 dark:bg-gold-600/10 blur-3xl" />
-        <div className="relative max-w-7xl mx-auto">
+        <div className="relative fluid-shell">
           <BackButton onClick={onBack} className="mb-8" />
           <span className="eyebrow">Koleksi Pilihan</span>
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-ink-900 dark:text-cream-50 mt-3 mb-3">
+          <h1 className="display-md text-ink-900 dark:text-cream-50 mt-3 mb-3">
             Galeri Perhiasan
           </h1>
           <p className="text-sm sm:text-base text-ink-600 dark:text-cream-200/70 max-w-xl">
@@ -70,8 +70,8 @@ export default function GalleryPage({ onBack }) {
       </div>
 
       {/* Content */}
-      <div className="py-10 sm:py-14 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="section-y-sm">
+        <div className="fluid-shell">
           {/* Search Bar */}
           <div className="mb-8">
             <div className="relative">
@@ -120,7 +120,7 @@ export default function GalleryPage({ onBack }) {
           {loading ? (
             <p className="text-center text-sm text-ink-600 dark:text-cream-200/60 py-20">Memuat…</p>
           ) : filteredGalleries.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+            <div className="auto-grid [--col-min:15rem]">
               {filteredGalleries.map((item) => (
                 <GalleryCard
                   key={item.id}
@@ -174,7 +174,7 @@ export default function GalleryPage({ onBack }) {
                 <img
                   src={selectedImage.image}
                   alt={selectedImage.title}
-                  className="w-full h-auto max-h-96 object-cover"
+                  className="w-full h-auto max-h-[60vh] object-cover"
                   loading="lazy"
                 />
               </div>

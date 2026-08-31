@@ -1,9 +1,9 @@
 # Konsultasi — Arsitektur & Kontrak Backend (asisten AI)
 
-Halaman [`src/components/ConsultationPage.jsx`](src/components/ConsultationPage.jsx)
+Halaman [`src/components/ConsultationPage.jsx`](../../src/components/ConsultationPage.jsx)
 (dibuka oleh tombol **"Mulai Konsultasi"**) adalah UI chat. Backend-nya **sudah
-dibangun** di [`server/src/routes/consult.js`](server/src/routes/consult.js) +
-[`server/src/lib/claude.js`](server/src/lib/claude.js) (RAG + function calling
+dibangun** di [`server/src/routes/consult.js`](../../server/src/routes/consult.js) +
+[`server/src/lib/claude.js`](../../server/src/lib/claude.js) (RAG + function calling
 lewat Claude, dengan fallback kata kunci lokal saat `ANTHROPIC_API_KEY` kosong).
 Dokumen ini adalah kontrak/arsitekturnya — dipakai sebagai referensi kalau mau
 mengubah perilaku bot atau membangun ulang di stack lain.
@@ -62,6 +62,7 @@ tiap pesan sudah dipotong ke 1000 karakter. **Backend tetap wajib memvalidasi ul
 | `sources` | tidak | Potongan RAG yang dipakai. `{ title, snippet, url? }`. Ditampilkan sebagai "N Sumber". |
 | `functions` | tidak | Hasil function yang dipanggil. `{ name, label, data }` — `data` dirender jadi kartu (lihat di bawah). |
 | `escalate` | tidak | **Diisi HANYA saat bot perlu admin/manusia.** `{ reason, channel?, contact? }`. Bila ada, UI menampilkan tombol "Chat Admin via WhatsApp" di bawah jawaban. Lihat §Eskalasi ke admin. |
+| `mode` | ya | `"live"` (Claude), `"fallback"` (kata kunci — anon, tanpa API key, atau plafon LLM habis), atau `"blocked"` (guard rail input server memblokir pesan). Untuk observabilitas; UI tidak wajib memakainya. |
 
 Streaming (SSE) opsional untuk nanti; UI sekarang menunggu satu respons JSON.
 
@@ -87,14 +88,18 @@ persis supaya kartunya dirender rapi di UI; nama lain tetap tampil sebagai JSON 
   }
 }
 
-// 2. Status pesanan — verifikasi kepemilikan sebelum membuka detail
+// 2. Status pesanan — verifikasi kepemilikan WAJIB sebelum membuka detail apa pun
 {
   "name": "cekStatusPesanan",
-  "description": "Ambil status & progres satu pesanan berdasarkan nomor (format SR-NNN-YYYY).",
+  "description": "Status & progres satu pesanan. WAJIB verifikasi kepemilikan: butuh nomorPesanan (SR-NNN-YYYY) + nama pemesan + hp terdaftar. Tanpa nama & hp yang cocok, tool balas needVerification/mismatch tanpa detail — jangan sebut apa pun soal pesanan itu.",
   "input_schema": {
     "type": "object",
     "additionalProperties": false,
-    "properties": { "nomorPesanan": { "type": "string", "pattern": "^SR-\\d{3}-\\d{4}$" } },
+    "properties": {
+      "nomorPesanan": { "type": "string", "pattern": "^SR-\\d{3}-\\d{4}$" },
+      "nama": { "type": "string", "description": "Nama pemesan sesuai data pesanan." },
+      "hp": { "type": "string", "description": "Nomor HP yang terdaftar pada pesanan." }
+    },
     "required": ["nomorPesanan"]
   }
 }
@@ -132,7 +137,11 @@ persis supaya kartunya dirender rapi di UI; nama lain tetap tampil sebagai JSON 
 
 Bentuk `data` yang diharapkan UI:
 - `infoLayanan` → array `{ id, icon, name }` (tanpa harga & tanpa estimasi waktu)
-- `cekStatusPesanan` → objek `{ orderNumber, customerName, status, progress, goldPurity }` (atau `{ notFound: "SR-..." }`)
+- `cekStatusPesanan` → salah satu:
+  - sukses (nomor + nama + HP cocok): `{ orderNumber, customerName, status, progress, goldPurity }`
+  - `{ notFound: "SR-..." }` — nomor tidak ada
+  - `{ needVerification: true, orderNumber? }` — nomor valid tapi nama/HP belum diberikan
+  - `{ mismatch: true, orderNumber }` — nama atau HP tidak cocok; jangan beri detail, arahkan ke WhatsApp
 - `rekomendasiGaleri` → array `{ id, title, price, image }` (harga di sini adalah harga katalog galeri, bukan tarif jasa)
 - `eskalasiKeAdmin` → **tidak** dirender sebagai kartu `functions`. Backend memetakannya ke field `escalate` pada response (lihat §Eskalasi ke admin).
 
@@ -143,7 +152,7 @@ Bentuk `data` yang diharapkan UI:
 > `claude.js` sudah berisi instruksi ini untuk jalur Claude; jalur fallback kata kunci juga sudah
 > disesuaikan (`fallbackConsult` di `server/src/lib/claude.js`).
 
-Data contoh untuk ketiganya ada di [`src/config/site.js`](src/config/site.js)
+Data contoh untuk ketiganya ada di [`src/config/site.js`](../../src/config/site.js)
 (`services`, `orders`, `galleries`) — di produksi ganti dengan query DB.
 
 ## Eskalasi ke admin
@@ -212,7 +221,7 @@ Isi yang perlu di-index (chunk ± 300–500 kata, simpan embedding di vector DB 
 pgvector / SQLite-VSS / layanan pihak ketiga):
 
 - Deskripsi tiap layanan + estimasi + hal yang memengaruhi harga
-- FAQ (sudah ada di [`BookingPage.jsx`](src/components/BookingPage.jsx))
+- FAQ (sudah ada di [`BookingPage.jsx`](../../src/components/BookingPage.jsx))
 - Kebijakan: pembatalan, garansi, pengiriman, cara bayar (DP/penuh)
 - Ringkasan tiap item galeri (judul, kategori, material, kisaran harga)
 - Info kontak & jam operasional
@@ -225,13 +234,15 @@ potongan itu di `sources`** supaya pengguna bisa menilai jawaban.
 Status implementasi saat ini (detail & legenda `[x]`/`[~]`/`[ ]` di [SECURITY.md](SECURITY.md) §2):
 
 - [x] API key Anthropic hanya di `server/.env`, tidak pernah dikirim ke browser.
-- [x] Rate limit `/api/consult` — 20 pesan/menit/IP (`consultLimiter`) + `express.json({ limit: '32kb' })`.
+- [x] **Soft-gate**: Claude hanya dipanggil untuk sesi konsumen yang login (`optionalAuth` + `isMember`); anon dilayani fallback kata kunci (0 biaya API). Field `mode` di respons: `live` / `fallback` / `blocked`.
+- [x] Rate limit `/api/consult` **berlapis** — 8/menit/IP (`consultLimiter`) + 40/hari/pengirim (`consultDailyLimiter`, kunci = token sesi bila login, kalau tidak per-IP) + `express.json({ limit: '32kb' })`.
+- [x] **Plafon biaya LLM harian** — `CONSULT_DAILY_LLM_BUDGET` (default 300); lewat batas → semua konsultasi turun ke fallback. Hitungan persisten di `db` (`lib/llmbudget.js`).
 - [x] Validasi ulang `messages` di server — `consultSchema` (zod): peran, panjang ≤4000, jumlah ≤30.
-- [~] `cekStatusPesanan`: **belum** verifikasi kepemilikan — siapa pun bisa buka status/nama pelanggan
-      hanya dari nomor pesanan. **Wajib diperbaiki sebelum go-live** — lihat SECURITY.md §2 (gap prioritas tinggi).
+- [x] **Guard rail 4 lapis** — input browser (`src/config/guardrails.js`), input server / anti prompt-injection (`server/src/lib/guardrails.js` `screenInbound`), prompt hardening (`SYSTEM` di `claude.js`), output (`sanitizeOutbound`: potong >2000 char, redaksi `sk-ant-…`/token/`ANTHROPIC_API_KEY`). Detail: [SECURITY.md](SECURITY.md) §3.
+- [x] `cekStatusPesanan` verifikasi kepemilikan — nomor pesanan + nama pemesan + HP terdaftar wajib cocok; tanpa itu tidak ada detail dibalas (jalur LLM **dan** fallback). Lihat [SECURITY.md](SECURITY.md) §2.
 - [x] Sanitasi output tool: hasil tool dirender lewat JSX (auto-escape) di UI, bukan HTML mentah;
       `escalate.contact`/`ringkasan` sengaja tidak boleh berisi data sensitif (lihat §Keamanan prefill).
-- [x] Log tanpa PII mentah — server tidak mencatat isi pesan konsultasi, hanya error generik.
+- [x] Log ter-redaksi — `consult_logs` menyimpan transkrip ringkas (maks 200 baris) dengan `redactPii()` menyamarkan HP/email/deret digit ≥12 pada `question` & `replyPreview`.
 - [x] CORS: hanya domain di `CORS_ORIGINS` (`server/.env`).
 
 ## Mengaktifkan di frontend
@@ -240,5 +251,5 @@ Status implementasi saat ini (detail & legenda `[x]`/`[~]`/`[ ]` di [SECURITY.md
 2. Set env saat build: `VITE_CONSULT_API=https://api.domainmu.com/consult`
    (atau path relatif `/api/consult` bila satu domain).
 3. Tanpa env itu, halaman otomatis memakai **mode mock** (`mockConsult()` di
-   [`src/config/consultation.js`](src/config/consultation.js)) — pencocokan kata kunci
+   [`src/config/consultation.js`](../../src/config/consultation.js)) — pencocokan kata kunci
    sederhana ke data `site.js`, berguna untuk demo & sebagai contoh bentuk respons.

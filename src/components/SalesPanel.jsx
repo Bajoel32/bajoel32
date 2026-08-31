@@ -99,10 +99,10 @@ export default function SalesPanel({ categories = [], onAdd }) {
   };
 
   return (
-    <div className="py-14 px-4 sm:px-6 lg:px-8 bg-cream-100 dark:bg-ink-800/40 border-t border-gold-200/70 dark:border-ink-700">
-      <div className="max-w-7xl mx-auto">
+    <div className="section-y-sm bg-cream-100 dark:bg-ink-800/40 border-t border-gold-200/70 dark:border-ink-700">
+      <div className="fluid-shell">
         <span className="eyebrow">Untuk Tim Sales</span>
-        <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900 dark:text-cream-50 mt-3 mb-6">
+        <h2 className="display-md text-ink-900 dark:text-cream-50 mt-3 mb-6">
           Upload Katalog
         </h2>
 

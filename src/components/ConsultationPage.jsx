@@ -89,7 +89,7 @@ export default function ConsultationPage({ onBack }) {
     <div className="w-full min-h-screen flex flex-col bg-cream-50 dark:bg-ink-900">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-cream-50/90 dark:bg-ink-900/90 backdrop-blur-md border-b border-gold-200/70 dark:border-ink-700">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
+        <div className="fluid-shell max-w-3xl py-4 flex items-center gap-4">
           <BackButton onClick={onBack} />
           <div className="flex items-center gap-3 min-w-0">
             <span className="w-9 h-9 shrink-0 rounded-full bg-linear-to-b from-gold-300 to-gold-500 flex items-center justify-center text-ink-900 text-lg">
@@ -114,11 +114,11 @@ export default function ConsultationPage({ onBack }) {
         aria-live="polite"
         aria-label="Percakapan konsultasi"
       >
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
+        <div className="fluid-shell max-w-3xl py-6 sm:py-8 space-y-5">
           {empty && (
             <div className="text-center py-8">
               <span className="eyebrow">Selamat datang</span>
-              <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900 dark:text-cream-50 mt-3 mb-3">
+              <h1 className="display-sm text-ink-900 dark:text-cream-50 mt-3 mb-3">
                 Ada yang bisa dibantu?
               </h1>
               <p className="text-sm sm:text-base text-ink-600 dark:text-cream-200/70 max-w-lg mx-auto">
@@ -181,7 +181,7 @@ export default function ConsultationPage({ onBack }) {
 
       {/* Composer */}
       <footer className="sticky bottom-0 bg-cream-50/95 dark:bg-ink-900/95 backdrop-blur-md border-t border-gold-200/70 dark:border-ink-700">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4">
+        <div className="fluid-shell max-w-3xl py-4">
           <form
             onSubmit={(e) => {
               e.preventDefault();
