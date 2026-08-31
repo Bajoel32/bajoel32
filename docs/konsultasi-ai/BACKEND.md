@@ -1,13 +1,13 @@
 # Checklist Backend — Srikandi
 
-Backend **sudah dibuat** di [`server/`](../../server/) (Node + Express, penyimpanan JSON file).
+Backend **sudah dibuat** di `server/` (Node + Express, penyimpanan JSON file).
 Cara jalan: `cd server && cp .env.example .env && npm install && npm run seed && npm run dev`
 → `http://localhost:8787`. Frontend memakainya lewat [`.env.local`](../../.env.local) di root.
 
 **Legenda:** `[x]` selesai di `server/` · `[~]` selesai tapi versi demo (perlu di-*upgrade* untuk produksi) · `[ ]` belum.
 
 **Dokumen rinci:**
-[server/README.md](../../server/README.md) · [ORDERS-AUTH.md](ORDERS-AUTH.md) ·
+`server/README.md` · [ORDERS-AUTH.md](ORDERS-AUTH.md) ·
 [CHATBOT.md](CHATBOT.md) · [SECURITY.md](SECURITY.md) ·
 [API-SCHEMA.md](API-SCHEMA.md) (diagram alur & skema data)
 

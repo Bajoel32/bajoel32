@@ -3,8 +3,8 @@
 Halaman **"Lihat Pesanan"** ([`src/components/OrdersPage.jsx`](../../src/components/OrdersPage.jsx))
 privat: konsumen wajib login untuk melihat progres pesanannya **sendiri**.
 
-Backend sungguhan **sudah ada** — [`server/src/routes/auth.js`](../../server/src/routes/auth.js) +
-[`server/src/routes/orders.js`](../../server/src/routes/orders.js) (bcrypt, token sesi, otorisasi
+Backend sungguhan **sudah ada** — `server/src/routes/auth.js` +
+`server/src/routes/orders.js` (bcrypt, token sesi, otorisasi
 per-`customerId`). Frontend memakainya otomatis saat `VITE_ORDERS_API` diisi di `.env.local`
 root (lihat [README.md](README.md) §9). **Tanpa** env itu, frontend jatuh ke mode dummy di
 bawah — 60 konsumen dibangkitkan lokal di [`src/config/orders.js`](../../src/config/orders.js),

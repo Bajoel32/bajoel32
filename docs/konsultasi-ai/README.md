@@ -16,9 +16,9 @@ dibuka oleh tombol **"Mulai Konsultasi"**) sebagai chatbot AI sungguhan
 
 ## Konteks singkat
 
-- Backend chatbot **sudah ada** di [`server/`](../../server/) (Node + Express).
-  Endpoint: `POST /api/consult` → [`server/src/routes/consult.js`](../../server/src/routes/consult.js)
-  → `runConsult()` di [`server/src/lib/claude.js`](../../server/src/lib/claude.js).
+- Backend chatbot **sudah ada** di `server/` (Node + Express).
+  Endpoint: `POST /api/consult` → `server/src/routes/consult.js`
+  → `runConsult()` di `server/src/lib/claude.js`.
 - Dua mode otomatis:
   - `ANTHROPIC_API_KEY` **diisi** → Claude asli (`@anthropic-ai/sdk`) + RAG atas
     `server/data/kb.json` + 4 tool.
@@ -32,4 +32,4 @@ dibuka oleh tombol **"Mulai Konsultasi"**) sebagai chatbot AI sungguhan
 - [`CHATBOT.md`](CHATBOT.md) — kontrak API & arsitektur lengkap (request/response, schema tool, eskalasi, RAG, keamanan).
 - [`BACKEND.md`](BACKEND.md) — checklist kesiapan backend secara umum.
 - [`SECURITY.md`](SECURITY.md) — postur keamanan + gap prioritas (§2).
-- [`server/README.md`](../../server/README.md) — struktur folder server.
+- `server/README.md` — struktur folder server.

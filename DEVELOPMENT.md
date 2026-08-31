@@ -216,7 +216,7 @@ penyimpanan masih JSON file / Postgres satu proses — detail & prioritas di
 
 ## 9. Backend
 
-Backend **sudah ada** di [`server/`](server/) (Node + Express; penyimpanan JSON file
+Backend **sudah ada** di `server/` (Node + Express; penyimpanan JSON file
 untuk dev lokal, atau Postgres bila `DATABASE_URL` diisi — mis. di Render).
 
 ```bash
@@ -238,9 +238,9 @@ Claude bila `ANTHROPIC_API_KEY` diisi di `server/.env`; jika kosong → fallback
 | Portal pesanan (login) | `POST /api/auth/login`, `GET /api/my-orders` | ✅ jalan (bcrypt, bukan OTP) — [ORDERS-AUTH.md](docs/konsultasi-ai/ORDERS-AUTH.md) |
 | Chatbot Konsultasi (RAG + Claude) | `POST /api/consult` | ✅ jalan (soft-gate: Claude untuk sesi login, fallback kata kunci untuk anon) — [CHATBOT.md](docs/konsultasi-ai/CHATBOT.md) |
 | Galeri | `GET /api/gallery` (baca) · `POST/PUT/DELETE /api/admin/gallery` (tulis, sesi admin) | ✅ jalan (tampil di `GalleryPage.jsx`); unggah masih metadata-only (URL gambar, belum upload file) |
-| Admin hub | `/api/admin/*` | ✅ jalan (app terpisah `srikandi-admin`) — [server/README.md](server/README.md) |
+| Admin hub | `/api/admin/*` | ✅ jalan (app terpisah `srikandi-admin`) — `server/README.md` |
 | Header & keamanan host | — | [SECURITY.md](docs/konsultasi-ai/SECURITY.md) |
 
 Checklist lengkap (apa yang selesai vs. sisa untuk produksi): **[BACKEND.md](docs/konsultasi-ai/BACKEND.md)**,
-detail server: **[server/README.md](server/README.md)**, diagram alur & skema
+detail server: **`server/README.md`**, diagram alur & skema
 data (cara semua terhubung): **[API-SCHEMA.md](docs/konsultasi-ai/API-SCHEMA.md)**.

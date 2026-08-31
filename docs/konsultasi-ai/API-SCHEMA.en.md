@@ -4,7 +4,7 @@
 original; keep both in sync if the API changes.)*
 
 A visual map of how the frontend ([`src/`](../../src/)) connects to the backend
-([`server/`](../../server/)): which env var points to which endpoint, the
+(`server/`): which env var points to which endpoint, the
 request/response shape of each endpoint, the step-by-step flow of each
 feature, and the shape of the data in the JSON store. For status/security
 checklists, see [BACKEND.md](BACKEND.md) and [SECURITY.md](SECURITY.md) —
@@ -93,7 +93,7 @@ flowchart TB
 ## 3. Endpoints — request & response shape
 
 Full field definitions live in the `zod` schemas —
-[`server/src/lib/validate.js`](../../server/src/lib/validate.js).
+`server/src/lib/validate.js`.
 
 | # | Endpoint | Auth | Rate limit | Request | Success response |
 |---|---|---|---|---|---|
