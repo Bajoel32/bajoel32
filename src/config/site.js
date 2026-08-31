@@ -69,8 +69,8 @@ export const siteConfig = {
   },
 
   // Lokasi toko — dipakai di section "Lokasi" pada Home (peta + alamat + jam buka).
-  // `mapQuery` dipakai untuk embed peta & tombol arah; ganti dengan alamat/nama
-  // yang paling tepat, atau tempel koordinat "lat,lng" bila punya.
+  // `coords` (dari share-link Google Maps toko) = titik pin peta & tujuan arah.
+  // `mapsUrl` = short-link Google Maps resmi (dibuka tombol "Buka di Google Maps").
   location: {
     name: 'Toko Emas Srikandi Palangkaraya',
     address: 'Jl. Sumatra, Pahandut, Kec. Pahandut',
@@ -79,7 +79,8 @@ export const siteConfig = {
       { day: 'Senin – Sabtu', time: '09.00 – 16.00' },
       { day: 'Minggu', time: '10.00 – 16.00' },
     ],
-    mapQuery: 'Toko Emas Srikandi, Jl. Sumatra, Pahandut, Palangka Raya',
+    coords: '-2.207947,113.9365328',
+    mapsUrl: 'https://maps.app.goo.gl/Ma4mhS7MSWtZ4ymB6',
   },
 
   // Media sosial — tampil di pojok kanan atas (navbar) dengan label "Follow kami"

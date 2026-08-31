@@ -316,17 +316,13 @@ function HomePage({ setCurrentPage, mobileMenuOpen, setMobileMenuOpen }) {
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(siteConfig.location.mapQuery)}`}
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(siteConfig.location.coords)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   <Button variant="primary" size="md">Petunjuk Arah</Button>
                 </a>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(siteConfig.location.mapQuery)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={siteConfig.location.mapsUrl} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" size="md">Buka di Google Maps</Button>
                 </a>
               </div>
@@ -335,7 +331,7 @@ function HomePage({ setCurrentPage, mobileMenuOpen, setMobileMenuOpen }) {
             <div className="rounded-2xl overflow-hidden border border-cream-200 bg-white min-h-72">
               <iframe
                 title={`Peta lokasi ${siteConfig.location.name}`}
-                src={`https://www.google.com/maps?q=${encodeURIComponent(siteConfig.location.mapQuery)}&output=embed`}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(siteConfig.location.coords)}&z=17&output=embed`}
                 className="w-full h-full min-h-72 border-0"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
