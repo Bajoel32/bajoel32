@@ -3,8 +3,8 @@
 *(English version of [API-SCHEMA.md](API-SCHEMA.md) — the Indonesian file is the
 original; keep both in sync if the API changes.)*
 
-A visual map of how the frontend ([`src/`](src/)) connects to the backend
-([`server/`](server/)): which env var points to which endpoint, the
+A visual map of how the frontend ([`src/`](../../src/)) connects to the backend
+([`server/`](../../server/)): which env var points to which endpoint, the
 request/response shape of each endpoint, the step-by-step flow of each
 feature, and the shape of the data in the JSON store. For status/security
 checklists, see [BACKEND.md](BACKEND.md) and [SECURITY.md](SECURITY.md) —
@@ -25,10 +25,10 @@ the frontend automatically falls back to local dummy data (no error).
 
 | UI feature | Env var (`.env.local`, project root) | Read in | Calls endpoint | If the env var is empty |
 |---|---|---|---|---|
-| "Buat Janji" booking form ([BookingPage.jsx](src/components/BookingPage.jsx)) | `VITE_BOOKINGS_API` | [BookingForm.jsx](src/components/BookingForm.jsx) | `POST {VITE_BOOKINGS_API}` | Form doesn't submit, just `console.debug`s the payload |
-| Login + "Lihat Pesanan" (orders) ([OrdersPage.jsx](src/components/OrdersPage.jsx)) | `VITE_ORDERS_API` | [config/orders.js](src/config/orders.js) | `POST {VITE_ORDERS_API}/auth/login`<br>`GET {VITE_ORDERS_API}/my-orders` | Uses 60 deterministic dummy customers (see ORDERS-AUTH.md) |
-| "Konsultasi" chat ([ConsultationPage.jsx](src/components/ConsultationPage.jsx)) | `VITE_CONSULT_API` | [config/consultation.js](src/config/consultation.js) | `POST {VITE_CONSULT_API}` | Uses `mockConsult()` — local keyword matching against `site.js` |
-| Gallery ([GalleryPage.jsx](src/components/GalleryPage.jsx)) | `VITE_GALLERY_API` | [config/gallery.js](src/config/gallery.js) | `GET {VITE_GALLERY_API}` | Uses `siteConfig.galleries` (static data in `site.js`) |
+| "Buat Janji" booking form ([BookingPage.jsx](../../src/components/BookingPage.jsx)) | `VITE_BOOKINGS_API` | [BookingForm.jsx](../../src/components/BookingForm.jsx) | `POST {VITE_BOOKINGS_API}` | Form doesn't submit, just `console.debug`s the payload |
+| Login + "Lihat Pesanan" (orders) ([OrdersPage.jsx](../../src/components/OrdersPage.jsx)) | `VITE_ORDERS_API` | [config/orders.js](../../src/config/orders.js) | `POST {VITE_ORDERS_API}/auth/login`<br>`GET {VITE_ORDERS_API}/my-orders` | Uses 60 deterministic dummy customers (see ORDERS-AUTH.md) |
+| "Konsultasi" chat ([ConsultationPage.jsx](../../src/components/ConsultationPage.jsx)) | `VITE_CONSULT_API` | [config/consultation.js](../../src/config/consultation.js) | `POST {VITE_CONSULT_API}` | Uses `mockConsult()` — local keyword matching against `site.js` |
+| Gallery ([GalleryPage.jsx](../../src/components/GalleryPage.jsx)) | `VITE_GALLERY_API` | [config/gallery.js](../../src/config/gallery.js) | `GET {VITE_GALLERY_API}` | Uses `siteConfig.galleries` (static data in `site.js`) |
 
 The backend itself (`server/.env`) has its own, separate set of env vars —
 see §7.
@@ -75,8 +75,8 @@ flowchart TB
 
     subgraph Server["server/ — Node + Express (:8787)"]
         MW["Middleware<br/>helmet · CORS allowlist · rate limit · express.json 32kb"]
-        Routes["Routes<br/>bookings · auth · orders · consult · gallery"]
-        Lib["lib/<br/>validate (zod) · auth (sessions) · tools · claude · rag · phone"]
+        Routes["Routes<br/>bookings · auth · orders · consult · gallery · admin"]
+        Lib["lib/<br/>validate (zod) · auth (sessions) · tools · claude · rag · phone<br/>guardrails · datacrypt · llmbudget · retention"]
         DB[("db.js<br/>one JSON file per table<br/>server/data/*.json")]
     end
 
@@ -93,7 +93,7 @@ flowchart TB
 ## 3. Endpoints — request & response shape
 
 Full field definitions live in the `zod` schemas —
-[`server/src/lib/validate.js`](server/src/lib/validate.js).
+[`server/src/lib/validate.js`](../../server/src/lib/validate.js).
 
 | # | Endpoint | Auth | Rate limit | Request | Success response |
 |---|---|---|---|---|---|
@@ -102,9 +102,9 @@ Full field definitions live in the `zod` schemas —
 | 3 | `POST /api/auth/login` | — | 10/10min/IP | `{phone, password}` | `200 { token, customer: {id, name, phone} }` |
 | 4 | `POST /api/auth/logout` | Bearer | global | — | `200 { ok: true }` |
 | 5 | `GET /api/my-orders` | Bearer | global | — | `200 { orders: [{id, orderNumber, serviceName, goldPurity, progress, status, createdDate}] }` — **only the token holder's own orders** |
-| 6 | `POST /api/consult` | — | 20/min/IP | `{messages: [{role: "user"\|"assistant", content}], …}` (max 30 messages, 4000 chars/message) | `200 { reply, sources?, functions?, escalate? }` |
+| 6 | `POST /api/consult` | optional (Bearer) | 8/min/IP + 40/day/sender | `{messages: [{role: "user"\|"assistant", content}], …}` (max 30 messages, 4000 chars/message) | `200 { reply, sources?, functions?, escalate?, mode }` |
 | 7 | `GET /api/gallery` | — | global | — | `200 { items: [...] }` |
-| 8 | `POST /api/gallery` | Bearer = `ADMIN_TOKEN` | global | `{title, image, description?, category?, price?, tags?}` | `201 { ok: true, item }` |
+| 8 | `POST/PUT/DELETE /api/admin/gallery[/:id]` | admin session (`requireAdmin`) | global | `{title, image, description?, category?, price?, tags?}` | `201 { ok: true, item }` |
 
 Common errors: `400` (validation failed), `401` (auth failed/expired), `404`
 (route not found), `429` (rate limited), `500` (`{ error: "Terjadi kesalahan
@@ -201,22 +201,25 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant A as Admin/Sales
-    participant Tool as curl / Postman / internal panel
-    participant API as POST /api/gallery
-    participant DB as gallery.json
+    participant A as Admin (srikandi-admin app)
+    participant API as /api/admin/*
+    participant DB as gallery (collection)
 
-    A->>Tool: prepare {title, image, ...} + ADMIN_TOKEN
-    Tool->>API: POST, header Authorization: Bearer <ADMIN_TOKEN>
-    API->>API: timingSafeEqual(token, ADMIN_TOKEN)
-    alt wrong/empty token
-        API-->>Tool: 401 "Perlu token admin."
-    else correct token
-        API->>API: zod validate (gallerySchema)
+    A->>API: POST /api/admin/login {username, password}
+    API->>API: bcrypt.compare + username timingSafeEqual
+    API-->>A: 200 {token}  (admin session, 12h TTL)
+    A->>API: POST /api/admin/gallery, Authorization: Bearer <token>
+    API->>API: requireAdmin (session check) + zod validate (gallerySchema)
+    alt invalid session
+        API-->>A: 401 "Perlu sesi admin."
+    else valid
         API->>DB: insert {id: uuid, uploadedDate, ...}
-        API-->>Tool: 201 {ok:true, item}
+        API-->>A: 201 {ok:true, item}
     end
 ```
+
+> The legacy `POST /api/gallery` route + static `ADMIN_TOKEN` secret have been
+> removed — gallery writes go through an admin session only.
 
 ---
 
@@ -294,9 +297,11 @@ erDiagram
     }
 ```
 
-`ORDERS.orderNumber` is used by the chatbot (`cekStatusPesanan`) to look up
-an order **across all customers** — there's no `customerId` check on this
-path, unlike `GET /api/my-orders` which is already safe. Risk details in
+`ORDERS.orderNumber` is used by the chatbot (`cekStatusPesanan`) to look up an
+order across all customers, but it now **requires ownership verification**: order
+number + orderer name + registered phone must all match before any detail is
+returned (phone matched exactly via `normalizePhone`, name by token match).
+Otherwise the tool returns `needVerification`/`mismatch`. Details in
 [SECURITY.md](SECURITY.md) §2.
 
 ---
@@ -335,20 +340,27 @@ stateDiagram-v2
 | Var | Example | Used in | Effect |
 |---|---|---|---|
 | `PORT` | `8787` | `config.js` | Server port |
-| `NODE_ENV` | `development` / `production` | `config.js`, `index.js` | `production` enables the default-`ADMIN_TOKEN` startup warning |
-| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:4173` | `middleware/security.js` | Allowlist of origins permitted to call the API |
-| `SESSION_TTL` | `86400` (seconds) | `lib/auth.js` | Session token lifetime |
+| `NODE_ENV` | `development` / `production` | `config.js`, `index.js` | `production` → `httpsRedirect` on + boot **aborts** if `ADMIN_PASSWORD_HASH` is still the repo example hash + warns if `DATA_ENCRYPTION_KEY` is empty |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:4173` | `middleware/security.js` | Storefront origin allowlist |
+| `ADMIN_ORIGINS` | `http://localhost:5174` | `middleware/security.js` | Admin-hub origin allowlist (merged into CORS) |
+| `SESSION_TTL` | `86400` (seconds) | `lib/auth.js` | Customer session token lifetime |
 | `ANTHROPIC_API_KEY` | `sk-ant-...` (leave empty for fallback) | `lib/claude.js` | Enables Claude; empty → local keyword-based answers |
 | `ANTHROPIC_MODEL` | `claude-opus-5` | `lib/claude.js` | Model to call |
+| `CONSULT_DAILY_LLM_BUDGET` | `300` | `lib/llmbudget.js` | Daily cap on real Claude calls; over → fallback |
+| `DATABASE_URL` | empty / `postgresql://…` | `db.js` | Empty = JSON file; set = Postgres (required on Render) |
+| `DATA_ENCRYPTION_KEY` | 32-byte base64 (`npm run gen:datakey`) | `lib/datacrypt.js` | At-rest encryption for sensitive collections; empty = plaintext |
+| `DATA_ENCRYPTION_KEY_OLD` | old key | `lib/datacrypt.js` | Rotation only (`npm run rotate:datakey`) |
+| `DATA_RETENTION_DAYS` | `90` | `lib/retention.js` | Drop old `ip` fields; `0` = disabled |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` | `admin` / `$2a$…` | `lib/adminAuth.js` | Admin-hub credentials (`npm run admin:hash -- "pass"`) |
+| `ADMIN_SESSION_TTL` | `43200` (12h) | `lib/adminAuth.js` | Admin session lifetime |
 | `WHATSAPP_BASE` | `https://wa.me/6281234567890` | `lib/tools.js` (`eskalasiKeAdmin`) | Target of the admin-escalation deep link |
-| `ADMIN_TOKEN` | change from the example! | `routes/gallery.js` | Bearer token for `POST /api/gallery` |
 
 **Setup from scratch:**
 
 ```bash
 # 1) Backend
 cd server
-cp .env.example .env      # fill in a real ADMIN_TOKEN, etc.
+cp .env.example .env      # fill in ANTHROPIC_API_KEY, WHATSAPP_BASE, etc.
 npm install
 npm run seed               # populate dummy data + print demo accounts
 npm run dev                # -> http://localhost:8787

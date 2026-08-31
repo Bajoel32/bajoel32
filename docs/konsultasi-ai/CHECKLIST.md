@@ -79,7 +79,7 @@ Untuk tiap function baru, sentuh **3 berkas** (+1 dokumen):
 
 ### E4. Dokumen
 
-- [ ] Tambah schema tool baru ke [`CHATBOT.md`](../../CHATBOT.md) §"Function / Tool untuk Claude"
+- [ ] Tambah schema tool baru ke [`CHATBOT.md`](CHATBOT.md) §"Function / Tool untuk Claude"
 - [ ] Catat bentuk `data` yang dikembalikan
 
 ### E5. Uji function baru
@@ -93,23 +93,27 @@ Untuk tiap function baru, sentuh **3 berkas** (+1 dokumen):
 
 ## F. Keamanan sebelum go-live
 
-- [~] `cekStatusPesanan` **belum** verifikasi kepemilikan — siapa pun bisa lihat status & nama pelanggan
-      hanya dari nomor pesanan. **Wajib diperbaiki** (mis. minta nama+HP, atau kaitkan ke sesi login). Lihat SECURITY.md §2.
+- [x] `cekStatusPesanan` verifikasi kepemilikan — nomor pesanan + nama pemesan + HP terdaftar wajib cocok
+      (HP persis via `normalizePhone`, nama pencocokan token); tanpa itu `needVerification`/`mismatch` tanpa detail. Berlaku di jalur LLM **dan** fallback. Lihat SECURITY.md §2.
 - [ ] Function baru yang menyentuh data pesanan/pelanggan juga menerapkan cek kepemilikan yang sama
 - [x] API key hanya di `server/.env`, tidak pernah ke browser — pertahankan
-- [x] Rate limit `/api/consult` 20/menit/IP (`consultLimiter`) + body `express.json({ limit: '32kb' })`
+- [x] Soft-gate: Claude hanya untuk sesi login; anon → fallback kata kunci (`optionalAuth` + `isMember`)
+- [x] Rate limit `/api/consult` berlapis: 8/menit/IP (`consultLimiter`) + 40/hari/pengirim (`consultDailyLimiter`) + body `express.json({ limit: '32kb' })`
+- [x] Plafon biaya LLM harian `CONSULT_DAILY_LLM_BUDGET` (default 300), persisten di `db`
+- [x] Guard rail 4 lapis (input browser + input server anti prompt-injection + prompt hardening + output redaksi) — lihat SECURITY.md §3
 - [x] Validasi ulang `messages` (zod `consultSchema`: role, panjang ≤4000, jumlah ≤30)
 - [ ] `CORS_ORIGINS` di server produksi = domain frontend produksi (bukan `localhost`)
-- [ ] `ADMIN_TOKEN` diganti dari nilai contoh (kalau pakai `POST /api/gallery`)
+- [x] Tulis galeri hanya lewat sesi admin (`/api/admin/gallery`); route legacy `POST /api/gallery` + `ADMIN_TOKEN` sudah dihapus
 - [ ] `escalate.contact` / `ringkasan` tidak memuat data sensitif (masuk URL WhatsApp perangkat pengguna)
-- [ ] Tidak ada `console.log` yang mencetak isi pesan konsultasi (PII)
+- [x] Log `consult_logs` di-redaksi (`redactPii`: HP/email/deret digit ≥12) sebelum disimpan
 
 ## G. Produksi / deploy
 
 - [ ] Backend di-deploy; `POST /api/consult` reachable dari domain frontend
 - [ ] Build frontend dengan `VITE_CONSULT_API=https://api.domainmu.com/consult` (atau `/api/consult` bila satu domain)
 - [ ] Uji: tanpa/putus koneksi ke backend → halaman turun ke `mockConsult` tanpa error fatal
-- [ ] (Disarankan) Ganti penyimpanan JSON-file → database sungguhan (Postgres/MySQL); antarmuka `db` di `server/src/db.js` sengaja kecil agar mudah ditukar
+- [x] Opsi Postgres tersedia — set `DATABASE_URL` (mis. Neon); JSON-file tetap default untuk dev. Untuk skala besar, tetap pertimbangkan DB relasional penuh (antarmuka `db` di `server/src/db.js` sengaja kecil agar mudah ditukar)
+- [x] Enkripsi data at-rest — set `DATA_ENCRYPTION_KEY` (`npm run gen:datakey`) di produksi
 - [ ] (Disarankan) Streaming SSE untuk balasan panjang (`client.messages.stream(...)`) — sekarang non-streaming
 - [ ] (Disarankan) RAG upgrade: embedding + vector DB (pgvector / SQLite-VSS) menggantikan retriever kata kunci di `server/src/lib/rag.js`
 - [ ] Pantau biaya token & atur `ANTHROPIC_MODEL` sesuai kebutuhan

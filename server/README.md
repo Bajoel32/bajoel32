@@ -11,7 +11,7 @@ chatbot Konsultasi (RAG + Claude + function calling).
 
 ```bash
 cd server
-cp .env.example .env      # lalu sesuaikan (WHATSAPP_BASE, ADMIN_TOKEN, dst.)
+cp .env.example .env      # lalu sesuaikan (ANTHROPIC_API_KEY, WHATSAPP_BASE, dst.)
 npm install
 npm run seed             # isi data dummy: 6 layanan, 60 konsumen, 117 pesanan, galeri, KB
 npm run dev              # http://localhost:8787  (atau: npm start)
@@ -36,9 +36,8 @@ Akun demo dicetak saat `npm run seed`. Contoh: HP `081269151610` · sandi `88057
 | POST | `/api/auth/login` | — | `{phone,password}` → `{token,customer}` (rate limit 10/10mnt) |
 | POST | `/api/auth/logout` | Bearer | hapus sesi di server |
 | GET  | `/api/my-orders` | Bearer | pesanan **milik pemegang token saja** |
-| POST | `/api/consult` | — | `{messages}` → `{reply,sources?,functions?,escalate?}` (rate limit 20/mnt) |
-| GET  | `/api/gallery` | — | daftar item galeri |
-| POST | `/api/gallery` | Bearer = `ADMIN_TOKEN` (dibandingkan waktu-konstan) | tambah metadata item galeri |
+| POST | `/api/consult` | opsional (Bearer) | `{messages}` → `{reply,sources?,functions?,escalate?,mode}`. Soft-gate: sesi login → Claude, anon → fallback kata kunci. Rate limit 8/mnt/IP + 40/hari/pengirim |
+| GET  | `/api/gallery` | — | daftar item galeri (baca; tulis lewat `/api/admin/gallery`) |
 
 ### Admin hub — `/api/admin/*` (app terpisah `srikandi-admin`)
 
@@ -58,9 +57,10 @@ diisi (`npm run admin:hash -- "sandi"`).
 | GET·DELETE | `/api/admin/consult-logs` | transkrip ringkas chatbot (maks 200) |
 | GET·PUT | `/api/admin/rag-config` | parameter retriever RAG (`topK`, `minScore`) |
 
-Kontrak rinci: [../CHATBOT.md](../CHATBOT.md), [../ORDERS-AUTH.md](../ORDERS-AUTH.md),
-checklist lengkap: [../BACKEND.md](../BACKEND.md), diagram alur & skema data:
-[../API-SCHEMA.md](../API-SCHEMA.md).
+Kontrak rinci: [CHATBOT.md](../docs/konsultasi-ai/CHATBOT.md),
+[ORDERS-AUTH.md](../docs/konsultasi-ai/ORDERS-AUTH.md), checklist lengkap:
+[BACKEND.md](../docs/konsultasi-ai/BACKEND.md), diagram alur & skema data:
+[API-SCHEMA.md](../docs/konsultasi-ai/API-SCHEMA.md).
 
 ## Struktur
 
@@ -68,18 +68,25 @@ checklist lengkap: [../BACKEND.md](../BACKEND.md), diagram alur & skema data:
 src/
   index.js            entry + wiring route & middleware (initDb -> ensureSeeded -> listen)
   config.js           baca .env
-  db.js               penyimpanan koleksi: Postgres bila DATABASE_URL ada, else JSON file
+  db.js               penyimpanan koleksi: Postgres bila DATABASE_URL ada, else JSON file;
+                      enkripsi at-rest untuk koleksi sensitif (lib/datacrypt.js)
   seed.js             isi data awal — CLI (npm run seed) + ensureSeeded() saat boot
   hashpw.js           npm run admin:hash -- "sandi"  -> hash bcrypt
+  genkey.js           npm run gen:datakey            -> kunci enkripsi 32-byte base64
+  rotatekey.js        npm run rotate:datakey         -> re-enkripsi koleksi dengan kunci baru
   middleware/
-    security.js       helmet, CORS allowlist (+ ADMIN_ORIGINS), rate limiter (+ counter)
+    security.js       helmet + HSTS, httpsRedirect, CORS allowlist (+ ADMIN_ORIGINS), rate limiter
     errors.js         404 + error handler (tanpa stack trace, hitung 5xx)
   routes/             bookings · auth · orders · consult · gallery · admin
   lib/
     validate.js       skema zod
-    auth.js           sesi konsumen + requireAuth
+    auth.js           sesi konsumen + requireAuth + optionalAuth
     adminAuth.js      sesi admin + requireAdmin
     metrics.js        counter in-memory untuk /api/admin/stats
+    llmbudget.js      plafon panggilan Claude harian, persisten di koleksi `counters`
+    guardrails.js     guard rail chatbot: screenInbound / sanitizeOutbound / redactPii
+    datacrypt.js      AES-256-GCM enkripsi/dekripsi string + daftar koleksi sensitif
+    retention.js      sweeper PII: buang field `ip` lama (DATA_RETENTION_DAYS)
     rag.js            retriever kata kunci; topK/minScore dari koleksi settings
     tools.js          infoLayanan · cekStatusPesanan · rekomendasiGaleri · eskalasiKeAdmin
     claude.js         loop tool Claude + fallback kata kunci
@@ -98,6 +105,8 @@ data/                 *.json (di-gitignore; hanya mode JSON, dibuat oleh seed)
 
 ## Sebelum produksi
 
-Lihat [../BACKEND.md](../BACKEND.md) §0 dan §7. Yang paling penting:
-ganti JSON store → DB sungguhan, OTP WhatsApp untuk login, token sesi jadi cookie
-`HttpOnly`, HTTPS/HSTS di depan, dan verifikasi kepemilikan pada `cekStatusPesanan`.
+Lihat [BACKEND.md](../docs/konsultasi-ai/BACKEND.md) §0 dan §7. Yang sudah beres:
+enkripsi data at-rest (`DATA_ENCRYPTION_KEY`), verifikasi kepemilikan `cekStatusPesanan`
+(nama + HP), HTTPS redirect + HSTS, guard rail chatbot, plafon biaya LLM harian.
+Yang masih tersisa: OTP WhatsApp untuk login, token sesi jadi cookie `HttpOnly`,
+rate limiter berbagi (mis. Redis) bila di-scale ke banyak instance.

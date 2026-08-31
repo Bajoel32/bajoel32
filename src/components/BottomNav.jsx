@@ -9,7 +9,7 @@ const TABS = [
 export default function BottomNav({ current, onNavigate }) {
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-ink-800 border-t border-gold-200/70 dark:border-ink-700 flex justify-around pt-2"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-cream-50 border-t border-cream-200 flex justify-around pt-2"
       style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
     >
       {TABS.map((tab) => {
@@ -23,13 +23,13 @@ export default function BottomNav({ current, onNavigate }) {
           >
             <span className="text-lg leading-none">{tab.icon}</span>
             <span
-              className={`text-[0.62rem] tracking-wide ${
-                active ? 'font-bold text-ink-900 dark:text-cream-50' : 'font-medium text-ink-500 dark:text-cream-200/50'
+              className={`text-[0.62rem] uppercase tracking-[0.12em] ${
+                active ? 'font-bold text-ink-900' : 'font-medium text-ink-500'
               }`}
             >
               {tab.label}
             </span>
-            {active && <span className="w-4 h-0.5 rounded-full bg-linear-to-r from-gold-400 to-gold-600 -mt-0.5" />}
+            {active && <span className="w-4 h-0.5 bg-gold-400 -mt-0.5" />}
           </button>
         );
       })}

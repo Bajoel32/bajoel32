@@ -22,29 +22,25 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #dfc073;
-  border-radius: 4px;
+  background: #d8c4a6;
+  border-radius: 0;
   transition: background 0.3s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #b8952c;
-}
-
-/* Dark mode scrollbar */
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-thumb {
-    background: #6f5322;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #967623;
-  }
+  background: #c5a880;
 }
 
 /* Smooth scroll behavior */
 html {
   scroll-behavior: smooth;
+}
+
+/* Cegah geser horizontal — layout fluid tidak boleh bikin scrollbar samping.
+   `clip` (bukan `hidden`) jaga `position: sticky` tetap jalan. */
+html,
+body {
+  overflow-x: clip;
 }
 
 /* Touch-friendly targets (minimum 44x44px on mobile) */
@@ -144,7 +140,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #b8952c;
+  outline: 2px solid #1c1c1c;
   outline-offset: 2px;
 }
 

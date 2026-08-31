@@ -29,12 +29,12 @@ export default function BookingPage({ onBack }) {
   return (
     <div className="w-full min-h-screen bg-cream-50 dark:bg-ink-900">
       {/* Header */}
-      <div className="relative bg-cream-100 dark:bg-ink-800/40 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-gold-200/70 dark:border-ink-700 overflow-hidden">
+      <div className="relative bg-cream-100 dark:bg-ink-800/40 section-y-sm border-b border-gold-200/70 dark:border-ink-700 overflow-hidden">
         <div className="pointer-events-none absolute -top-24 right-0 h-72 w-72 rounded-full bg-gold-200/40 dark:bg-gold-600/10 blur-3xl" />
-        <div className="relative max-w-7xl mx-auto">
+        <div className="relative fluid-shell">
           <BackButton onClick={onBack} className="mb-8" />
           <span className="eyebrow">Layanan Premium</span>
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-ink-900 dark:text-cream-50 mt-3 mb-3">
+          <h1 className="display-md text-ink-900 dark:text-cream-50 mt-3 mb-3">
             Layanan Perhiasan
           </h1>
           <p className="text-sm sm:text-base text-ink-600 dark:text-cream-200/70 max-w-xl">
@@ -44,16 +44,16 @@ export default function BookingPage({ onBack }) {
       </div>
 
       {/* Content */}
-      <div className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="section-y-sm">
+        <div className="fluid-shell">
           {/* Services — kompak */}
           <div className="mb-12 sm:mb-14">
             <span className="eyebrow">Pilihan Kami</span>
-            <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink-900 dark:text-cream-50 mt-2 mb-4">
+            <h2 className="display-sm text-ink-900 dark:text-cream-50 mt-2 mb-4">
               Layanan Tersedia
             </h2>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+            <div className="auto-grid [--col-min:8rem]">
               {services.map((service, i) => (
                 <div
                   key={service.id}
@@ -77,7 +77,7 @@ export default function BookingPage({ onBack }) {
           {/* Booking Form Section */}
           <div className="bg-white dark:bg-ink-800 p-5 sm:p-7 rounded-2xl border border-gold-200/70 dark:border-ink-700 shadow-elegant">
             <span className="eyebrow">Formulir</span>
-            <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink-900 dark:text-cream-50 mt-2 mb-1.5">
+            <h2 className="display-sm text-ink-900 dark:text-cream-50 mt-2 mb-1.5">
               Buat Janji
             </h2>
             <p className="text-sm text-ink-600 dark:text-cream-200/70 mb-6">
@@ -90,7 +90,7 @@ export default function BookingPage({ onBack }) {
           {/* FAQ Section */}
           <div className="mt-16 sm:mt-20">
             <span className="eyebrow">Pertanyaan Umum</span>
-            <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900 dark:text-cream-50 mt-3 mb-8">
+            <h2 className="display-md text-ink-900 dark:text-cream-50 mt-3 mb-8">
               Hal yang Sering Ditanyakan
             </h2>
 

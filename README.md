@@ -5,7 +5,7 @@ Dokumen ini dibuat supaya kamu **cepat menemukan file yang perlu diubah** dan
 **tahu cara memperbaiki** kalau ada error.
 
 - **Stack:** React 19, Vite 8, Tailwind CSS v4 — plus backend Node + Express di [`server/`](server/) (lihat §9)
-- **Sifat:** frontend bisa jalan sendiri (mode dummy) atau tersambung ke backend nyata — lihat [SECURITY.md](SECURITY.md) untuk status keamanan keduanya
+- **Sifat:** frontend bisa jalan sendiri (mode dummy) atau tersambung ke backend nyata — lihat [SECURITY.md](docs/konsultasi-ai/SECURITY.md) untuk status keamanan keduanya
 - **Bahasa build:** JavaScript (`.jsx`), bukan TypeScript
 
 ---
@@ -29,13 +29,15 @@ sering ketahuan di sini.
 
 ```
 index.html                     Judul tab, meta, link Google Fonts, meta keamanan
+.github/workflows/deploy.yml   CI deploy ke GitHub Pages (push ke main)
 public/
-  _headers                     Header keamanan saat deploy (Netlify/Cloudflare)
+  _headers                     Header keamanan (Netlify/Cloudflare — TIDAK dibaca GitHub Pages)
   favicon.svg, icons.svg       Ikon statis
 src/
   main.jsx                     Titik masuk React (jarang disentuh)
-  index.css                    >>> WARNA & FONT (Tailwind @theme) + helper elegan
-  App.css                      Scrollbar, animasi, focus outline
+  index.css                    >>> WARNA & FONT (Tailwind @theme) + helper elegan +
+                               utilitas fluid (.fluid-shell / .section-y / .display-* / .auto-grid / .float-card)
+  App.css                      Scrollbar, animasi, focus outline, overflow-x guard
   App.jsx                      Router sederhana antar-halaman (home/orders/booking/
                                gallery/consult) + <BottomNav> (mobile). Isi halaman
                                Home (navbar, hero, section, footer) ada di komponen
@@ -53,23 +55,21 @@ src/
     Button.jsx                 Tombol (varian: primary / secondary / outline / ghost)
     Card.jsx                   Kartu (opsi `iconTile` untuk ikon kotak berwarna)
     Hero.jsx                   Hero ringkas (opsional judul/deskripsi + 2 tombol)
-    Grid.jsx                   Grid pembungkus kartu
+    BackButton.jsx             Tombol "kembali" di halaman dalaman
     GoldPriceCard.jsx          Kartu "Estimasi Harga Emas" di Home (data demo,
                                BUKAN feed real-time)
     ActionGrid.jsx             Grid 4 shortcut aksi cepat di Home
     PromoCarousel.jsx          Carousel promo di Home (pakai data `galleries`)
     BottomNav.jsx              Tab bar bawah (mobile) — 5 halaman utama
-    Table.jsx                  Tabel generik (tidak lagi dipakai OrdersPage, masih
-                               tersedia untuk kebutuhan lain)
     OrderCard.jsx              Kartu satu pesanan (dipakai OrdersPage)
     OrdersPage.jsx             Halaman "Pesanan Perhiasan" (login + daftar OrderCard)
     BookingPage.jsx            Halaman "Layanan" + FAQ + kontak
     BookingForm.jsx            Form pemesanan (validasi + honeypot anti-bot)
     GalleryPage.jsx            Halaman "Galeri" (cari, filter, modal detail)
     GalleryCard.jsx            Kartu galeri
+    SalesPanel.jsx             Panel "Untuk Tim Sales" di bawah Galeri (gerbang sandi lokal)
     ConsultationPage.jsx       Halaman chat "Konsultasi" — lihat CHATBOT.md
     BrandIcons.jsx             Logo Instagram / TikTok / Facebook / WhatsApp (SVG)
-    index.js                   Kumpulan export komponen
 tailwind.config.js             Hanya daftar file yang dipindai. Warna/font TIDAK di sini
                                (ada di src/index.css) — lihat catatan di §4
 vite.config.js                 Konfigurasi build
@@ -114,10 +114,11 @@ Semua "token" ada di blok `@theme` dalam **`src/index.css`**:
 
 ```css
 @theme {
-  --color-gold-400: #d4af37;   /* warna emas utama     */
-  --color-cream-50: #faf7f1;   /* latar krem           */
-  --color-ink-900:  #0f382c;   /* hijau tua (aksen gelap: nav, footer, CTA) */
-  --font-display: "Playfair Display", ...;  /* font judul */
+  --color-gold-400: #c5a880;   /* emas antik teredam (aksen utama)          */
+  --color-cream-50: #faf8f5;   /* latar kertas hangat                       */
+  --color-ink-900:  #1c1c1c;   /* tinta nyaris-hitam (nav, footer, CTA)     */
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;  /* font judul */
+  --font-sans:    "Manrope", system-ui, sans-serif;               /* font teks  */
 }
 ```
 
@@ -180,30 +181,38 @@ npm run build
 
 ## 7. Deploy
 
-1. `npm run build` → hasilnya folder **`dist/`**.
-2. Upload isi `dist/` ke hosting statis (Netlify, Cloudflare Pages, Vercel, atau server biasa).
-3. File `public/_headers` ikut ter-copy ke `dist/` dan otomatis dipakai Netlify /
-   Cloudflare Pages untuk memasang header keamanan.
-   - **Vercel:** pindahkan isinya ke `vercel.json` → `headers`.
-   - **Nginx/Apache:** terjemahkan ke `add_header` / `.htaccess`.
-4. Cek hasil header di <https://securityheaders.com>.
+**Target saat ini: GitHub Pages** (user site `bajoel32.github.io`, `base: '/'` di
+`vite.config.js`). Alurnya otomatis lewat [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
+
+1. Push ke `main` → workflow jalan `npm ci` + `npm run build` + `actions/deploy-pages`.
+2. Di repo: **Settings → Pages → "Enforce HTTPS"** (GitHub menangani redirect HTTP→HTTPS + HSTS untuk `*.github.io`).
+3. (Opsional) set secret `VITE_SALES_PASSPHRASE_SHA256` untuk gerbang panel sales.
+
+> **`public/_headers` TIDAK dibaca GitHub Pages.** CSP di file itu hanya berlaku bila
+> dipindah ke **Netlify / Cloudflare Pages** (dipakai otomatis), **Vercel** (`vercel.json` →
+> `headers`), atau **Nginx/Apache** (`add_header` / `.htaccess`). Detail: [SECURITY.md](docs/konsultasi-ai/SECURITY.md).
+
+Manual (hosting lain): `npm run build`, lalu upload isi `dist/`. Cek header di <https://securityheaders.com>.
 
 ---
 
 ## 8. Keamanan
 
 Hasil audit frontend + backend, apa yang sudah diamankan, dan **checklist gap yang
-masih terbuka** ada di **[SECURITY.md](SECURITY.md)**.
+masih terbuka** ada di **[SECURITY.md](docs/konsultasi-ai/SECURITY.md)**.
 
 Intinya: form punya validasi klien + honeypot, dan `server/` memvalidasi ulang semua
-input (`zod`), pakai CORS allowlist, rate limit per endpoint, bcrypt, serta token sesi
-acak. Gap terbesar yang masih terbuka: tool `cekStatusPesanan` di chatbot belum
-verifikasi kepemilikan, dan sesi masih Bearer token (bukan cookie `HttpOnly`) — detail
-& prioritas di SECURITY.md §2.
+input (`zod`), pakai CORS allowlist, rate limit per endpoint, bcrypt, token sesi acak,
+enkripsi data pelanggan at-rest (AES-256-GCM), guard rail 4 lapis di chatbot, dan
+verifikasi kepemilikan (nama + HP) pada `cekStatusPesanan`. Gap terbesar yang masih
+terbuka: sesi masih Bearer token di `sessionStorage` (bukan cookie `HttpOnly`), dan
+penyimpanan masih JSON file / Postgres satu proses — detail & prioritas di
+[SECURITY.md](docs/konsultasi-ai/SECURITY.md) §2.
 
 ## 9. Backend
 
-Backend **sudah ada** di [`server/`](server/) (Node + Express, penyimpanan JSON file — versi demo).
+Backend **sudah ada** di [`server/`](server/) (Node + Express; penyimpanan JSON file
+untuk dev lokal, atau Postgres bila `DATABASE_URL` diisi — mis. di Render).
 
 ```bash
 cd server
@@ -220,12 +229,13 @@ Claude bila `ANTHROPIC_API_KEY` diisi di `server/.env`; jika kosong → fallback
 
 | Fitur | Endpoint | Status & dokumen |
 |---|---|---|
-| Form pemesanan | `POST /api/bookings` | ✅ jalan — [BACKEND.md](BACKEND.md) §2 |
-| Portal pesanan (login) | `POST /api/auth/login`, `GET /api/my-orders` | ✅ jalan (bcrypt, bukan OTP) — [ORDERS-AUTH.md](ORDERS-AUTH.md) |
-| Chatbot Konsultasi (RAG + Claude) | `POST /api/consult` | ✅ jalan — [CHATBOT.md](CHATBOT.md) |
-| Galeri | `GET/POST /api/gallery` | ✅ jalan (tampil di `GalleryPage.jsx`); unggah masih metadata-only (URL gambar, belum upload file) |
-| Header & keamanan host | — | [SECURITY.md](SECURITY.md) |
+| Form pemesanan | `POST /api/bookings` | ✅ jalan — [BACKEND.md](docs/konsultasi-ai/BACKEND.md) §2 |
+| Portal pesanan (login) | `POST /api/auth/login`, `GET /api/my-orders` | ✅ jalan (bcrypt, bukan OTP) — [ORDERS-AUTH.md](docs/konsultasi-ai/ORDERS-AUTH.md) |
+| Chatbot Konsultasi (RAG + Claude) | `POST /api/consult` | ✅ jalan (soft-gate: Claude untuk sesi login, fallback kata kunci untuk anon) — [CHATBOT.md](docs/konsultasi-ai/CHATBOT.md) |
+| Galeri | `GET /api/gallery` (baca) · `POST/PUT/DELETE /api/admin/gallery` (tulis, sesi admin) | ✅ jalan (tampil di `GalleryPage.jsx`); unggah masih metadata-only (URL gambar, belum upload file) |
+| Admin hub | `/api/admin/*` | ✅ jalan (app terpisah `srikandi-admin`) — [server/README.md](server/README.md) |
+| Header & keamanan host | — | [SECURITY.md](docs/konsultasi-ai/SECURITY.md) |
 
-Checklist lengkap (apa yang selesai vs. sisa untuk produksi): **[BACKEND.md](BACKEND.md)**,
+Checklist lengkap (apa yang selesai vs. sisa untuk produksi): **[BACKEND.md](docs/konsultasi-ai/BACKEND.md)**,
 detail server: **[server/README.md](server/README.md)**, diagram alur & skema
-data (cara semua terhubung): **[API-SCHEMA.md](API-SCHEMA.md)**.
+data (cara semua terhubung): **[API-SCHEMA.md](docs/konsultasi-ai/API-SCHEMA.md)**.

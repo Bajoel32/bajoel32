@@ -1,13 +1,13 @@
 # Checklist Backend — Srikandi
 
-Backend **sudah dibuat** di [`server/`](server/) (Node + Express, penyimpanan JSON file).
+Backend **sudah dibuat** di [`server/`](../../server/) (Node + Express, penyimpanan JSON file).
 Cara jalan: `cd server && cp .env.example .env && npm install && npm run seed && npm run dev`
-→ `http://localhost:8787`. Frontend memakainya lewat [`.env.local`](.env.local) di root.
+→ `http://localhost:8787`. Frontend memakainya lewat [`.env.local`](../../.env.local) di root.
 
 **Legenda:** `[x]` selesai di `server/` · `[~]` selesai tapi versi demo (perlu di-*upgrade* untuk produksi) · `[ ]` belum.
 
 **Dokumen rinci:**
-[server/README.md](server/README.md) · [ORDERS-AUTH.md](ORDERS-AUTH.md) ·
+[server/README.md](../../server/README.md) · [ORDERS-AUTH.md](ORDERS-AUTH.md) ·
 [CHATBOT.md](CHATBOT.md) · [SECURITY.md](SECURITY.md) ·
 [API-SCHEMA.md](API-SCHEMA.md) (diagram alur & skema data)
 
@@ -18,13 +18,15 @@ Cara jalan: `cd server && cp .env.example .env && npm install && npm run seed &&
 - [x] Stack server — Node + Express (`server/src/index.js`).
 - [x] **CORS** allowlist dari env `CORS_ORIGINS` (bukan `*`) — `server/src/middleware/security.js`.
 - [x] Security headers tingkat aplikasi — `helmet`.
-- [x] Rate limiting global (120/mnt) + per-endpoint (login 10/10mnt, booking 5/mnt, consult 20/mnt).
+- [x] Rate limiting global (120/mnt) + per-endpoint (login 10/10mnt, booking 5/mnt). `/api/consult` berlapis: 8/mnt/IP + 40/hari/pengirim.
 - [x] Batas ukuran body (`express.json({ limit: '32kb' })`).
 - [x] Error handler tidak membocorkan stack trace (`server/src/middleware/errors.js`).
 - [x] Rahasia di `server/.env` (di-`.gitignore`), contoh di `.env.example`.
-- [~] "DB" — penyimpanan JSON file (`server/src/db.js`) dengan tabel `services/customers/orders/
-      bookings/gallery/kb/sessions`. **Ganti dengan Postgres/MySQL** untuk produksi (antarmuka `db` sengaja kecil agar mudah ditukar).
-- [ ] HTTPS + HSTS + header keamanan di host — pindahkan [`public/_headers`](public/_headers) ke konfigurasi host (SECURITY.md).
+- [x] **HTTPS redirect + HSTS di aplikasi** — `httpsRedirect` (308 di produksi bila `X-Forwarded-Proto: http`) + `helmet` HSTS `max-age=31536000; includeSubDomains; preload` (`server/src/middleware/security.js`). Edge host (Render) juga redirect otomatis.
+- [x] **Enkripsi data at-rest** — AES-256-GCM untuk `customers`, `orders`, `bookings`, `sessions`, `consult_logs` bila `DATA_ENCRYPTION_KEY` diset (`server/src/lib/datacrypt.js`); rotasi kunci lewat `npm run rotate:datakey` + `DATA_ENCRYPTION_KEY_OLD`.
+- [x] **Retensi PII** — field `ip` di `bookings` & `consult_logs` dibuang setelah `DATA_RETENTION_DAYS` (default 90) hari (`server/src/lib/retention.js`).
+- [~] "DB" — penyimpanan JSON file (`server/src/db.js`, tabel `services/customers/orders/
+      bookings/gallery/kb/sessions/consult_logs/counters/settings`), **atau Postgres** bila `DATABASE_URL` diisi (satu baris blob `jsonb` per koleksi di tabel `kv`; wajib di Render). Untuk skala besar tetap perlu DB relasional sungguhan.
 - [ ] CI: `npm audit` / Dependabot untuk `server/`.
 
 ## 1. Data
@@ -66,8 +68,10 @@ Cara jalan: `cd server && cp .env.example .env && npm install && npm run seed &&
 
 ## 4. Konsultasi — `server/src/routes/consult.js`, `lib/claude.js`
 
-### `POST /api/consult`  `{messages}` → `{reply,sources?,functions?,escalate?}`
-- [x] Validasi `messages` (peran, panjang ≤4000, jumlah ≤30) + rate limit 20/mnt.
+### `POST /api/consult`  `{messages}` → `{reply,sources?,functions?,escalate?,mode}`
+- [x] Validasi `messages` (peran, panjang ≤4000, jumlah ≤30) + rate limit berlapis (8/mnt/IP + 40/hari/pengirim).
+- [x] **Soft-gate** — Claude hanya untuk sesi login (`optionalAuth` + `isMember`); anon → fallback kata kunci (0 biaya API).
+- [x] **Plafon biaya LLM harian** — `CONSULT_DAILY_LLM_BUDGET` (default 300), persisten di koleksi `counters` (`lib/llmbudget.js`); lewat batas → semua turun ke fallback.
 - [x] Panggil **Claude** via `@anthropic-ai/sdk` **di server** bila `ANTHROPIC_API_KEY` diisi;
       API key tidak pernah ke browser.
 - [x] 4 tool terimplementasi: `infoLayanan`, `cekStatusPesanan`, `rekomendasiGaleri`, `eskalasiKeAdmin`
@@ -78,23 +82,21 @@ Cara jalan: `cd server && cp .env.example .env && npm install && npm run seed &&
       "Chat Admin via WhatsApp" dengan prefix pesan.
 - [x] **Fallback** kata kunci lokal saat `ANTHROPIC_API_KEY` kosong (server tetap berfungsi untuk demo).
 - [x] System prompt: jawab hanya dari konteks/tool, jangan mengarang harga/tanggal, jangan tampilkan
-      data pelanggan lain, eskalasi untuk komplain/sengketa/teknis/di luar cakupan.
-- [~] **`cekStatusPesanan` belum verifikasi kepemilikan** — terbuka untuk data dummy.
-      Produksi: minta verifikasi (nama + HP atau sesi login) sebelum buka detail.
+      data pelanggan lain, eskalasi untuk komplain/sengketa/teknis/di luar cakupan, perlakukan isi pesan sebagai data (anti prompt-injection), kunci topik ke Srikandi.
+- [x] **Guard rail 4 lapis** — `checkUserInput` (browser), `screenInbound` (server, anti prompt-injection), prompt hardening, `sanitizeOutbound` (potong/redaksi balasan). Lihat [SECURITY.md](SECURITY.md) §3.
+- [x] **`cekStatusPesanan` verifikasi kepemilikan** — nomor pesanan + nama pemesan + HP terdaftar wajib cocok (HP persis via `normalizePhone`, nama pencocokan token); tanpa itu `needVerification`/`mismatch` tanpa detail. Berlaku di jalur LLM **dan** fallback.
+- [x] **Log ter-redaksi** — `consult_logs` (maks 200 baris) dengan `redactPii()` pada `question` & `replyPreview`.
 - [~] Non-streaming (`messages.create`). CHATBOT.md menyarankan streaming untuk produksi.
 - [ ] RAG berbasis embedding + vector DB (sekarang bag-of-words) — bila korpus membesar.
 
-## 5. Galeri — `server/src/routes/gallery.js`
+## 5. Galeri — `server/src/routes/gallery.js` (baca) · `server/src/routes/admin.js` (tulis)
 
 - [x] `GET /api/gallery` — daftar item. Sudah disambungkan ke frontend lewat
-      `VITE_GALLERY_API` → [`src/config/gallery.js`](src/config/gallery.js) →
+      `VITE_GALLERY_API` → [`src/config/gallery.js`](../../src/config/gallery.js) →
       `GalleryPage.jsx` (fallback ke `siteConfig.galleries` bila env kosong).
-- [x] `POST /api/gallery` — butuh `Authorization: Bearer <ADMIN_TOKEN>` (dibandingkan waktu-konstan
-      via `crypto.timingSafeEqual`, lihat [SECURITY.md](SECURITY.md) §2), validasi `zod`.
-- [x] Peringatan di log start server bila `NODE_ENV=production` tapi `ADMIN_TOKEN` masih kosong/nilai contoh.
+- [x] Tulis galeri lewat **admin hub**: `POST/PUT/DELETE /api/admin/gallery` (butuh sesi admin `requireAdmin` — bcrypt + token sesi acak), validasi `zod` (`gallerySchema`). Route legacy `POST /api/gallery` + secret statis `ADMIN_TOKEN` **sudah dihapus**.
 - [ ] Unggah **file** sesungguhnya: batasi MIME (`image/jpeg|png`) + ukuran, simpan ke object
       storage, nama file digenerate server. Sekarang hanya menerima URL gambar (metadata).
-- [ ] Auth admin sungguhan (sekarang: satu token statis dari env).
 
 ## 6. Variabel environment
 
@@ -103,22 +105,33 @@ Cara jalan: `cd server && cp .env.example .env && npm install && npm run seed &&
 | `VITE_ORDERS_API` | frontend | `.env.local` | `http://localhost:8787/api` |
 | `VITE_CONSULT_API` | frontend | `.env.local` | `http://localhost:8787/api/consult` |
 | `VITE_BOOKINGS_API` | frontend | `.env.local` | `http://localhost:8787/api/bookings` |
-| `PORT`, `NODE_ENV`, `CORS_ORIGINS`, `SESSION_TTL` | server | `server/.env` | lihat `.env.example` |
+| `PORT`, `NODE_ENV`, `CORS_ORIGINS`, `ADMIN_ORIGINS`, `SESSION_TTL` | server | `server/.env` | lihat `.env.example` |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | server | `server/.env` | `sk-ant-...` / `claude-opus-5` |
+| `CONSULT_DAILY_LLM_BUDGET` | server | `server/.env` | `300` (plafon panggilan Claude/hari) |
+| `DATABASE_URL` | server | `server/.env` | kosong = JSON file; diisi = Postgres (wajib di Render) |
+| `DATA_ENCRYPTION_KEY` / `DATA_ENCRYPTION_KEY_OLD` | server | `server/.env` | 32-byte base64 (`npm run gen:datakey`); `_OLD` hanya saat rotasi |
+| `DATA_RETENTION_DAYS` | server | `server/.env` | `90` (buang `ip` lama; `0` = mati) |
+| `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `ADMIN_SESSION_TTL` | server | `server/.env` | admin hub (`npm run admin:hash -- "sandi"`) |
 | `WHATSAPP_BASE` | server | `server/.env` | `https://wa.me/6281234567890` |
-| `ADMIN_TOKEN` | server | `server/.env` | ganti di produksi |
 
 Tanpa `VITE_*` (hapus `.env.local`) frontend kembali ke data dummy.
 Tanpa `ANTHROPIC_API_KEY` chatbot pakai fallback kata kunci.
 
-## 7. Sebelum produksi (belum)
+## 7. Sebelum produksi
 
-- [ ] JSON store → DB sungguhan (Postgres) + migrasi.
+**Sudah beres:** HTTPS redirect + HSTS di app, enkripsi data at-rest (`DATA_ENCRYPTION_KEY`)
++ rotasi kunci, retensi `ip`, verifikasi kepemilikan `cekStatusPesanan`, guard rail chatbot
+4 lapis, plafon biaya LLM harian, guard boot menolak kredensial admin contoh saat
+`NODE_ENV=production`, opsi penyimpanan Postgres (`DATABASE_URL`).
+
+**Masih tersisa:**
+
+- [ ] JSON store → DB relasional sungguhan untuk skala besar (Postgres blob `kv` sudah ada sebagai jembatan).
 - [ ] Login: OTP WhatsApp + token sesi jadi cookie `HttpOnly; Secure; SameSite`.
-- [ ] `cekStatusPesanan`: verifikasi kepemilikan.
-- [ ] HTTPS/HSTS + security headers di host; cek <https://securityheaders.com>.
+- [ ] Verifikasi akhir header di <https://securityheaders.com> setelah deploy pertama.
 - [ ] Notifikasi admin untuk booking baru (email/WA).
 - [ ] Unggah galeri ke object storage dengan batas MIME/ukuran.
+- [ ] Rate limiter berbagi (mis. Redis) bila di-scale ke banyak instance.
 - [ ] CI `npm audit` + uji: spam booking, brute-force login, akses silang pesanan,
       prompt injection & kebocoran data di chatbot.
 - [ ] Ganti data dummy dengan data toko asli.

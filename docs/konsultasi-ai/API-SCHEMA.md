@@ -1,7 +1,7 @@
 # Skema & Diagram API — Srikandi
 
-Peta visual bagaimana frontend ([`src/`](src/)) terhubung ke backend
-([`server/`](server/)): env var apa mengarah ke endpoint apa, bentuk
+Peta visual bagaimana frontend ([`src/`](../../src/)) terhubung ke backend
+([`server/`](../../server/)): env var apa mengarah ke endpoint apa, bentuk
 request/response tiap endpoint, alur tiap fitur langkah-demi-langkah, dan
 bentuk data di penyimpanan JSON. Untuk checklist status & keamanan, lihat
 [BACKEND.md](BACKEND.md) dan [SECURITY.md](SECURITY.md) — dokumen ini fokus
@@ -21,10 +21,10 @@ frontend otomatis jatuh ke data dummy lokal (tidak error).
 
 | Fitur UI | Env var (`.env.local` root) | Dibaca di | Memanggil endpoint | Kalau env var kosong |
 |---|---|---|---|---|
-| Form "Buat Janji" ([BookingPage.jsx](src/components/BookingPage.jsx)) | `VITE_BOOKINGS_API` | [BookingForm.jsx](src/components/BookingForm.jsx) | `POST {VITE_BOOKINGS_API}` | Form tidak mengirim, cuma `console.debug` payload |
-| Login + "Lihat Pesanan" ([OrdersPage.jsx](src/components/OrdersPage.jsx)) | `VITE_ORDERS_API` | [config/orders.js](src/config/orders.js) | `POST {VITE_ORDERS_API}/auth/login`<br>`GET {VITE_ORDERS_API}/my-orders` | Pakai 60 konsumen dummy deterministik (lihat ORDERS-AUTH.md) |
-| Chat "Konsultasi" ([ConsultationPage.jsx](src/components/ConsultationPage.jsx)) | `VITE_CONSULT_API` | [config/consultation.js](src/config/consultation.js) | `POST {VITE_CONSULT_API}` | Pakai `mockConsult()` — pencocokan kata kunci lokal ke `site.js` |
-| Galeri ([GalleryPage.jsx](src/components/GalleryPage.jsx)) | `VITE_GALLERY_API` | [config/gallery.js](src/config/gallery.js) | `GET {VITE_GALLERY_API}` | Pakai `siteConfig.galleries` (data statis di `site.js`) |
+| Form "Buat Janji" ([BookingPage.jsx](../../src/components/BookingPage.jsx)) | `VITE_BOOKINGS_API` | [BookingForm.jsx](../../src/components/BookingForm.jsx) | `POST {VITE_BOOKINGS_API}` | Form tidak mengirim, cuma `console.debug` payload |
+| Login + "Lihat Pesanan" ([OrdersPage.jsx](../../src/components/OrdersPage.jsx)) | `VITE_ORDERS_API` | [config/orders.js](../../src/config/orders.js) | `POST {VITE_ORDERS_API}/auth/login`<br>`GET {VITE_ORDERS_API}/my-orders` | Pakai 60 konsumen dummy deterministik (lihat ORDERS-AUTH.md) |
+| Chat "Konsultasi" ([ConsultationPage.jsx](../../src/components/ConsultationPage.jsx)) | `VITE_CONSULT_API` | [config/consultation.js](../../src/config/consultation.js) | `POST {VITE_CONSULT_API}` | Pakai `mockConsult()` — pencocokan kata kunci lokal ke `site.js` |
+| Galeri ([GalleryPage.jsx](../../src/components/GalleryPage.jsx)) | `VITE_GALLERY_API` | [config/gallery.js](../../src/config/gallery.js) | `GET {VITE_GALLERY_API}` | Pakai `siteConfig.galleries` (data statis di `site.js`) |
 
 Backend sendiri (`server/.env`) punya env var terpisah — lihat §5.
 
@@ -70,8 +70,8 @@ flowchart TB
 
     subgraph Server["server/ — Node + Express (:8787)"]
         MW["Middleware<br/>helmet · CORS allowlist · rate limit · express.json 32kb"]
-        Routes["Routes<br/>bookings · auth · orders · consult · gallery"]
-        Lib["lib/<br/>validate (zod) · auth (sesi) · tools · claude · rag · phone"]
+        Routes["Routes<br/>bookings · auth · orders · consult · gallery · admin"]
+        Lib["lib/<br/>validate (zod) · auth (sesi) · tools · claude · rag · phone<br/>guardrails · datacrypt · llmbudget · retention"]
         DB[("db.js<br/>JSON file per tabel<br/>server/data/*.json")]
     end
 
@@ -87,7 +87,7 @@ flowchart TB
 
 ## 3. Endpoint — bentuk request & response
 
-Field lengkap ada di skema `zod` — [`server/src/lib/validate.js`](server/src/lib/validate.js).
+Field lengkap ada di skema `zod` — [`server/src/lib/validate.js`](../../server/src/lib/validate.js).
 
 | # | Endpoint | Auth | Rate limit | Request | Response sukses |
 |---|---|---|---|---|---|
@@ -96,9 +96,9 @@ Field lengkap ada di skema `zod` — [`server/src/lib/validate.js`](server/src/l
 | 3 | `POST /api/auth/login` | — | 10/10mnt/IP | `{phone, password}` | `200 { token, customer: {id, name, phone} }` |
 | 4 | `POST /api/auth/logout` | Bearer | global | — | `200 { ok: true }` |
 | 5 | `GET /api/my-orders` | Bearer | global | — | `200 { orders: [{id, orderNumber, serviceName, goldPurity, progress, status, createdDate}] }` — **hanya milik pemegang token** |
-| 6 | `POST /api/consult` | — | 20/mnt/IP | `{messages: [{role: "user"\|"assistant", content}], …}` (maks 30 pesan, 4000 char/pesan) | `200 { reply, sources?, functions?, escalate? }` |
+| 6 | `POST /api/consult` | opsional (Bearer) | 8/mnt/IP + 40/hari/pengirim | `{messages: [{role: "user"\|"assistant", content}], …}` (maks 30 pesan, 4000 char/pesan) | `200 { reply, sources?, functions?, escalate?, mode }` |
 | 7 | `GET /api/gallery` | — | global | — | `200 { items: [...] }` |
-| 8 | `POST /api/gallery` | Bearer = `ADMIN_TOKEN` | global | `{title, image, description?, category?, price?, tags?}` | `201 { ok: true, item }` |
+| 8 | `POST/PUT/DELETE /api/admin/gallery[/:id]` | sesi admin (`requireAdmin`) | global | `{title, image, description?, category?, price?, tags?}` | `201 { ok: true, item }` |
 
 Error umum: `400` (validasi gagal), `401` (auth gagal/kedaluwarsa), `404`
 (route tak ada), `429` (rate limit), `500` (`{ error: "Terjadi kesalahan di
@@ -195,22 +195,25 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant A as Admin/Sales
-    participant Tool as curl / Postman / panel internal
-    participant API as POST /api/gallery
-    participant DB as gallery.json
+    participant A as Admin (app srikandi-admin)
+    participant API as /api/admin/*
+    participant DB as gallery (koleksi)
 
-    A->>Tool: siapkan {title, image, ...} + token ADMIN_TOKEN
-    Tool->>API: POST, header Authorization: Bearer <ADMIN_TOKEN>
-    API->>API: timingSafeEqual(token, ADMIN_TOKEN)
-    alt token salah/kosong
-        API-->>Tool: 401 "Perlu token admin."
-    else token benar
-        API->>API: zod validate (gallerySchema)
+    A->>API: POST /api/admin/login {username, password}
+    API->>API: bcrypt.compare + username timingSafeEqual
+    API-->>A: 200 {token}  (sesi admin, TTL 12 jam)
+    A->>API: POST /api/admin/gallery, Authorization: Bearer <token>
+    API->>API: requireAdmin (cek sesi) + zod validate (gallerySchema)
+    alt sesi tidak valid
+        API-->>A: 401 "Perlu sesi admin."
+    else valid
         API->>DB: insert {id: uuid, uploadedDate, ...}
-        API-->>Tool: 201 {ok:true, item}
+        API-->>A: 201 {ok:true, item}
     end
 ```
+
+> Route legacy `POST /api/gallery` + secret statis `ADMIN_TOKEN` sudah dihapus —
+> tulis galeri hanya lewat sesi admin.
 
 ---
 
@@ -288,10 +291,11 @@ erDiagram
     }
 ```
 
-`ORDERS.orderNumber` dipakai chatbot (`cekStatusPesanan`) untuk mencari
-pesanan **lintas semua konsumen** — belum ada pengecekan `customerId` di jalur
-ini, beda dengan `GET /api/my-orders` yang sudah aman. Detail risikonya di
-[SECURITY.md](SECURITY.md) §2.
+`ORDERS.orderNumber` dipakai chatbot (`cekStatusPesanan`) untuk mencari pesanan
+lintas semua konsumen, tapi kini **wajib verifikasi kepemilikan**: nomor pesanan +
+nama pemesan + HP terdaftar harus cocok sebelum detail apa pun dibalas (HP persis
+via `normalizePhone`, nama pencocokan token). Tanpa itu tool balas
+`needVerification`/`mismatch`. Detail di [SECURITY.md](SECURITY.md) §2.
 
 ---
 
@@ -329,20 +333,27 @@ stateDiagram-v2
 | Var | Contoh | Dipakai di | Efek |
 |---|---|---|---|
 | `PORT` | `8787` | `config.js` | Port server |
-| `NODE_ENV` | `development` / `production` | `config.js`, `index.js` | `production` mengaktifkan peringatan `ADMIN_TOKEN` default |
-| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:4173` | `middleware/security.js` | Whitelist origin yang boleh fetch API |
-| `SESSION_TTL` | `86400` (detik) | `lib/auth.js` | Masa berlaku token sesi |
+| `NODE_ENV` | `development` / `production` | `config.js`, `index.js` | `production` → `httpsRedirect` aktif + boot **berhenti** bila `ADMIN_PASSWORD_HASH` masih hash contoh + peringatan bila `DATA_ENCRYPTION_KEY` kosong |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:4173` | `middleware/security.js` | Allowlist origin storefront |
+| `ADMIN_ORIGINS` | `http://localhost:5174` | `middleware/security.js` | Allowlist origin admin hub (digabung ke CORS) |
+| `SESSION_TTL` | `86400` (detik) | `lib/auth.js` | Masa berlaku token sesi konsumen |
 | `ANTHROPIC_API_KEY` | `sk-ant-...` (kosongkan untuk fallback) | `lib/claude.js` | Aktifkan Claude; kosong → jawaban kata kunci lokal |
 | `ANTHROPIC_MODEL` | `claude-opus-5` | `lib/claude.js` | Model yang dipanggil |
+| `CONSULT_DAILY_LLM_BUDGET` | `300` | `lib/llmbudget.js` | Plafon panggilan Claude/hari; lewat batas → fallback |
+| `DATABASE_URL` | kosong / `postgresql://…` | `db.js` | Kosong = JSON file; diisi = Postgres (wajib di Render) |
+| `DATA_ENCRYPTION_KEY` | 32-byte base64 (`npm run gen:datakey`) | `lib/datacrypt.js` | Enkripsi at-rest koleksi sensitif; kosong = data polos |
+| `DATA_ENCRYPTION_KEY_OLD` | kunci lama | `lib/datacrypt.js` | Hanya saat rotasi (`npm run rotate:datakey`) |
+| `DATA_RETENTION_DAYS` | `90` | `lib/retention.js` | Buang field `ip` lama; `0` = mati |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` | `admin` / `$2a$…` | `lib/adminAuth.js` | Kredensial admin hub (`npm run admin:hash -- "sandi"`) |
+| `ADMIN_SESSION_TTL` | `43200` (12 jam) | `lib/adminAuth.js` | Masa berlaku sesi admin |
 | `WHATSAPP_BASE` | `https://wa.me/6281234567890` | `lib/tools.js` (`eskalasiKeAdmin`) | Tujuan deep-link eskalasi admin |
-| `ADMIN_TOKEN` | ganti dari contoh! | `routes/gallery.js` | Bearer token untuk `POST /api/gallery` |
 
 **Alur setup dari nol:**
 
 ```bash
 # 1) Backend
 cd server
-cp .env.example .env      # isi ADMIN_TOKEN sungguhan, dst.
+cp .env.example .env      # isi ANTHROPIC_API_KEY, WHATSAPP_BASE, dst.
 npm install
 npm run seed               # isi data dummy + cetak akun demo
 npm run dev                # -> http://localhost:8787

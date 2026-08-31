@@ -19,7 +19,7 @@ function Sparkline({ points, up }) {
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none" aria-hidden="true">
       <path
         d={d}
-        stroke={up ? '#4ADE80' : '#F87171'}
+        stroke={up ? '#4f7a4f' : '#a8564e'}
         strokeWidth={1.8}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -36,20 +36,15 @@ export default function GoldPriceCard({ onNavigate }) {
   const up = item.change >= 0;
 
   return (
-    <div className="mx-4 sm:mx-6 max-w-7xl lg:mx-auto lg:w-full">
-      <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-[#F9C6A9] via-[#F6B0B4] to-[#F2A5C6] px-5 py-5 sm:px-7 sm:py-6 shadow-elegant">
-        <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full border border-ink-900/10" />
-        <div className="pointer-events-none absolute -right-11 -top-11 h-36 w-36 rounded-full border border-ink-900/6" />
-
+    <div className="fluid-shell">
+      <div className="float-card relative overflow-hidden rounded-2xl bg-cream-100 border border-cream-200 px-[clamp(1.25rem,4vw,1.75rem)] py-[clamp(1.25rem,3.5vw,1.5rem)]">
         {/* Header */}
         <div className="relative flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-ink-900/70" />
-            <span className="text-[0.65rem] font-sans tracking-[0.18em] text-ink-900/70 font-medium">
-              ESTIMASI HARGA EMAS
-            </span>
-          </div>
-          <span className="text-[0.65rem] font-sans text-ink-900/45">Update berkala</span>
+          <span className="flex items-center gap-3">
+            <span className="gold-rule" />
+            <span className="eyebrow">Estimasi Harga Emas</span>
+          </span>
+          <span className="text-[0.65rem] font-sans text-mute">Update berkala</span>
         </div>
 
         {/* Weight tabs */}
@@ -60,8 +55,8 @@ export default function GoldPriceCard({ onNavigate }) {
               onClick={() => setActive(i)}
               className={`rounded-lg px-3 py-1.5 text-[0.7rem] font-sans font-semibold tracking-wide transition-colors ${
                 active === i
-                  ? 'bg-ink-900/12 text-ink-900 border border-ink-900/25'
-                  : 'bg-white/35 text-ink-900/55 border border-transparent hover:bg-white/55'
+                  ? 'bg-ink-900 text-cream-50 border border-ink-900'
+                  : 'bg-white text-ink-600 border border-cream-200 hover:border-gold-400'
               }`}
             >
               {g.weight}
@@ -72,16 +67,16 @@ export default function GoldPriceCard({ onNavigate }) {
         {/* Price row */}
         <div className="relative flex items-end justify-between">
           <div>
-            <p className="font-display text-2xl sm:text-3xl font-semibold text-ink-900 leading-none">
+            <p className="font-display text-[clamp(1.75rem,5vw,2.5rem)] font-semibold text-ink-900 leading-none">
               {fmt(item.buy)}
             </p>
-            <p className="text-xs font-sans text-ink-900/55 mt-1.5">Jual: {fmt(item.sell)}</p>
+            <p className="text-xs font-sans text-ink-600 mt-1.5">Jual: {fmt(item.sell)}</p>
           </div>
           <div className="flex flex-col items-end gap-1.5">
             <Sparkline points={item.sparkline} up={up} />
             <span
               className={`rounded-md px-2 py-0.5 text-[0.7rem] font-sans font-bold ${
-                up ? 'bg-emerald-600/15 text-emerald-800' : 'bg-red-600/15 text-red-800'
+                up ? 'bg-[#4f7a4f]/12 text-[#3d5f3d]' : 'bg-[#a8564e]/12 text-[#7d3f39]'
               }`}
             >
               {up ? '▲' : '▼'} {Math.abs(item.change).toFixed(2)}%
@@ -89,21 +84,21 @@ export default function GoldPriceCard({ onNavigate }) {
           </div>
         </div>
 
-        <p className="relative mt-3 text-[0.68rem] leading-snug text-ink-900/45">
+        <p className="relative mt-3 text-[0.68rem] leading-snug text-mute">
           Bukan harga real-time — konfirmasi harga terkini ke staf kami sebelum bertransaksi.
         </p>
 
         {/* Actions */}
-        <div className="relative flex gap-2.5 mt-4">
+        <div className="relative flex flex-col xs:flex-row gap-2.5 mt-4">
           <button
             onClick={() => onNavigate?.('consult')}
-            className="flex-1 rounded-xl bg-linear-to-br from-gold-400 to-gold-600 py-2.5 text-[0.7rem] font-sans font-bold uppercase tracking-wider text-ink-900 hover:from-gold-300 hover:to-gold-500 transition-colors"
+            className="flex-1 min-w-0 rounded-xl bg-ink-900 py-2.5 text-[0.7rem] font-sans font-bold uppercase tracking-[0.14em] text-cream-50 hover:bg-gold-400 hover:text-ink-900 transition-colors"
           >
             Konsultasi Beli
           </button>
           <button
             onClick={() => onNavigate?.('consult')}
-            className="flex-1 rounded-xl border border-ink-900/20 bg-white/35 py-2.5 text-[0.7rem] font-sans font-semibold uppercase tracking-wider text-ink-900/80 hover:bg-white/55 transition-colors"
+            className="flex-1 min-w-0 rounded-xl border border-ink-900 bg-white py-2.5 text-[0.7rem] font-sans font-semibold uppercase tracking-[0.14em] text-ink-900 hover:bg-ink-900 hover:text-cream-50 transition-colors"
           >
             Konsultasi Jual
           </button>
