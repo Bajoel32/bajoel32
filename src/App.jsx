@@ -353,7 +353,12 @@ function HomePage({ setCurrentPage, mobileMenuOpen, setMobileMenuOpen }) {
           <p className="text-sm sm:text-base lg:text-lg text-cream-200/70 mb-10 max-w-xl mx-auto leading-[1.7]">
             {siteConfig.cta.subtitle}
           </p>
-          <Button variant="primary" size="lg" onClick={() => setCurrentPage('consult')} className="bg-cream-50 border-cream-50 text-ink-900">
+          <Button
+            variant="primary"
+            size="xl"
+            onClick={() => setCurrentPage('consult')}
+            className="cta-pulse bg-cream-50 border-cream-50 text-ink-900 hover:bg-gold-400 hover:border-gold-400"
+          >
             {siteConfig.cta.buttonText}
           </Button>
         </div>
