@@ -333,9 +333,9 @@ function HomePage({ setCurrentPage, mobileMenuOpen, setMobileMenuOpen }) {
             </div>
           </div>
 
-          {/* Oversized watermark */}
+          {/* Oversized watermark — ukuran dijaga agar seluruh kata muat (tak terpotong) di layar sempit */}
           <div className="mt-16 border-t border-white/10 pt-8 overflow-hidden">
-            <p className="font-display uppercase tracking-[0.08em] text-cream-200/10 leading-[0.8] text-center text-[22vw] lg:text-[15rem] select-none pointer-events-none">
+            <p className="font-display uppercase tracking-[0.04em] text-cream-200/10 leading-[0.8] text-center whitespace-nowrap text-[13vw] sm:text-[14vw] lg:text-[15rem] select-none pointer-events-none">
               {siteConfig.brand.name}
             </p>
           </div>
