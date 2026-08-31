@@ -1,0 +1,306 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/*  Design tokens — "Aurelia" editorial luxury                        */
+/*  warm paper · near-black ink · muted antique gold                  */
+/* ------------------------------------------------------------------ */
+@theme {
+  --breakpoint-xs: 22.5rem;
+
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, "Times New Roman", serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Manrope", system-ui, "Segoe UI", Roboto, sans-serif;
+
+  /* Warm paper canvas */
+  --color-cream-50: #faf8f5;
+  --color-cream-100: #f5f0e6;
+  --color-cream-200: #eae4dc;
+
+  /* Muted antique gold */
+  --color-gold-100: #f2ebdd;
+  --color-gold-200: #e6d9c3;
+  --color-gold-300: #d8c4a6;
+  --color-gold-400: #c5a880;
+  --color-gold-500: #b0906a;
+  --color-gold-600: #8e7350;
+  --color-gold-700: #6f5a3f;
+
+  /* Warm greys → near-black ink */
+  --color-ink-500: #8e8880;
+  --color-ink-600: #55524e;
+  --color-ink-700: #3f3d3a;
+  --color-ink-800: #2b2a28;
+  --color-ink-900: #1c1c1c;
+
+  /* Muted label grey */
+  --color-mute: #8e8880;
+
+  --shadow-elegant: 0 1px 2px rgba(28, 28, 28, 0.04), 0 12px 32px -16px rgba(28, 28, 28, 0.12);
+  --shadow-gold: 0 8px 28px -12px rgba(197, 168, 128, 0.38);
+
+  /* Rounder frames everywhere — Tailwind rounded-* mengikuti skala ini */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 0.9375rem;
+  --radius-xl: 1.125rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
+
+:root {
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
+
+  /* Gutter yang ikut lebar layar (fluid, tanpa lompatan breakpoint) */
+  --gutter: clamp(1rem, 5vw, 2.25rem);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-cream-50);
+  color: var(--color-ink-600);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Reusable editorial helpers                                        */
+/* ------------------------------------------------------------------ */
+@layer components {
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.005em;
+  }
+
+  /* Small-caps overline label (warm grey, Manrope) */
+  .eyebrow {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--color-mute);
+  }
+
+  /* The "01 / 02 …" index that leads a numbered section eyebrow */
+  .eyebrow-index {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-gold-400);
+    letter-spacing: 0.04em;
+  }
+
+  /* Thin solid gold divider — pairs with the eyebrow */
+  .gold-rule {
+    display: inline-block;
+    width: 2rem;
+    height: 1px;
+    background: var(--color-gold-400);
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(115deg, #8e7350 0%, #d8c4a6 50%, #b0906a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Faint pattern for dark panels */
+  .bg-gold-grid {
+    background-image: radial-gradient(rgba(197, 168, 128, 0.14) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  /* Icon-only back button — arrow keeps a soft leftward nudge */
+  .back-btn__arrow {
+    animation: back-nudge 1.9s ease-in-out infinite;
+  }
+
+  .back-btn:hover .back-btn__arrow,
+  .back-btn:focus-visible .back-btn__arrow {
+    animation: back-nudge-strong 0.6s ease-in-out infinite;
+  }
+
+  @keyframes back-nudge {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-2px);
+    }
+  }
+
+  @keyframes back-nudge-strong {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-4px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .back-btn__arrow,
+    .back-btn:hover .back-btn__arrow,
+    .back-btn:focus-visible .back-btn__arrow {
+      animation: none;
+    }
+  }
+
+  /* Brand wordmark — plain letterspaced Cormorant, near-black */
+  .brand-wordmark {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-style: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-ink-900);
+    transition: letter-spacing 0.45s ease;
+  }
+
+  .brand-wordmark:hover,
+  .brand-wordmark:focus-visible {
+    letter-spacing: 0.22em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .brand-wordmark {
+      transition: none;
+    }
+    .brand-wordmark:hover,
+    .brand-wordmark:focus-visible {
+      letter-spacing: 0.15em;
+    }
+  }
+
+  /* Gentle floating motion for text blocks (feature cards) */
+  @keyframes float-text {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+
+  .float-text {
+    animation: float-text 3.4s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .float-text-1 {
+    animation-delay: 0.5s;
+  }
+
+  .float-text-2 {
+    animation-delay: 1s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .float-text {
+      animation: none;
+    }
+  }
+
+  /* ---------------------------------------------------------------- */
+  /*  Fluid layout — semuanya "float" mengikuti ukuran browser        */
+  /* ---------------------------------------------------------------- */
+
+  /* Wadah lebar-penuh dengan batas & padding yang fluid */
+  .fluid-shell {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* Ritme vertikal section yang ikut lebar layar */
+  .section-y {
+    padding-block: clamp(3.5rem, 9vw, 8rem);
+  }
+
+  /* Versi ringkas — header halaman, blok konten dalaman */
+  .section-y-sm {
+    padding-block: clamp(2.25rem, 5.5vw, 4rem);
+  }
+
+  /* Judul display yang menskala mulus (bukan lompatan text-4xl→5xl→6xl) */
+  .display-xl {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    font-size: clamp(2.75rem, 1.4rem + 5.2vw, 4.75rem);
+  }
+
+  .display-lg {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    font-size: clamp(2.25rem, 1.3rem + 3.8vw, 4rem);
+  }
+
+  .display-md {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    font-size: clamp(1.75rem, 1.15rem + 2.4vw, 3rem);
+  }
+
+  .display-sm {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.2;
+    font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem);
+  }
+
+  /* Grid kartu yang otomatis reflow — tanpa breakpoint tetap */
+  .auto-grid {
+    display: grid;
+    gap: clamp(1rem, 2.5vw, 2rem);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--col-min, 15rem)), 1fr));
+  }
+
+  /* Gerak mengambang lembut untuk kartu.
+     Pakai properti `translate` (bukan `transform`) supaya hover -translate tetap jalan. */
+  @keyframes float-card {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -7px;
+    }
+  }
+
+  .float-card {
+    animation: float-card 4.4s ease-in-out infinite;
+    will-change: translate;
+  }
+
+  .float-card-1 {
+    animation-delay: 0.55s;
+  }
+
+  .float-card-2 {
+    animation-delay: 1.1s;
+  }
+
+  .float-card-3 {
+    animation-delay: 1.65s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .float-card {
+      animation: none;
+    }
+  }
+}
