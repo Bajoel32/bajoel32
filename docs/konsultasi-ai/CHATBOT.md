@@ -2,8 +2,8 @@
 
 Halaman [`src/components/ConsultationPage.jsx`](../../src/components/ConsultationPage.jsx)
 (dibuka oleh tombol **"Mulai Konsultasi"**) adalah UI chat. Backend-nya **sudah
-dibangun** di [`server/src/routes/consult.js`](../../server/src/routes/consult.js) +
-[`server/src/lib/claude.js`](../../server/src/lib/claude.js) (RAG + function calling
+dibangun** di `server/src/routes/consult.js` +
+`server/src/lib/claude.js` (RAG + function calling
 lewat Claude, dengan fallback kata kunci lokal saat `ANTHROPIC_API_KEY` kosong).
 Dokumen ini adalah kontrak/arsitekturnya — dipakai sebagai referensi kalau mau
 mengubah perilaku bot atau membangun ulang di stack lain.

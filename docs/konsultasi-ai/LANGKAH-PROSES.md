@@ -67,7 +67,7 @@ DATA_ENCRYPTION_KEY=
 - Key **hanya** di sini. Jangan pernah menaruh key di kode frontend / `.env.local`.
 - `server/.env` sudah masuk `server/.gitignore`.
 - Daftar env var lengkap (admin hub, Postgres, retensi, rotasi kunci) ada di
-  [`server/.env.example`](../../server/.env.example) dan [API-SCHEMA.md](API-SCHEMA.md) §7.
+  `server/.env.example` dan [API-SCHEMA.md](API-SCHEMA.md) §7.
 
 ### Langkah 3. Arahkan frontend ke backend
 
@@ -127,8 +127,8 @@ Perhatikan field `reply`, `functions[]`, `sources[]`.
 ### Langkah 7. Sesuaikan isi bot (opsional)
 
 - **Pengetahuan**: tambah entri di `server/data/kb.json` — bentuknya `{ "id", "title", "text", "url"? }`.
-  Retriever ([`server/src/lib/rag.js`](../../server/src/lib/rag.js)) hanya cocok kata kunci; tulis `title`/`text` memakai istilah yang biasa ditanyakan pelanggan.
-- **Perilaku**: ubah `const SYSTEM` di [`server/src/lib/claude.js`](../../server/src/lib/claude.js).
+  Retriever (`server/src/lib/rag.js`) hanya cocok kata kunci; tulis `title`/`text` memakai istilah yang biasa ditanyakan pelanggan.
+- **Perilaku**: ubah `const SYSTEM` di `server/src/lib/claude.js`.
 - **UI**: `consultationConfig` di [`src/config/consultation.js`](../../src/config/consultation.js) — `assistantName`, `intro`, `disclaimer`, `starters`, `maxChars` (1000), `maxHistory` (20).
 
 ---
@@ -187,7 +187,7 @@ Buat datanya — `server/data/jamOperasional.json`:
 ]
 ```
 
-> `db` di [`server/src/db.js`](../../server/src/db.js) memuat file `<nama>.json` on-demand
+> `db` di `server/src/db.js` memuat file `<nama>.json` on-demand
 > lewat `db.all('<nama>')`. Tidak perlu mengubah `db.js`. Untuk data statis seperti ini,
 > tidak perlu di-seed.
 
@@ -323,11 +323,11 @@ bagian **"Function / Tool untuk Claude"**, dan catat bentuk `data`-nya
 4. **Rate limit & ukuran body** sudah ada (`consultLimiter` 8/menit/IP + `consultDailyLimiter`
    40/hari/pengirim, body 32kb, plafon LLM harian `CONSULT_DAILY_LLM_BUDGET`) — sesuaikan bila perlu.
 5. **Database**: opsi Postgres sudah ada (`DATABASE_URL`); JSON-file default untuk dev.
-   Antarmuka `db` (`all/insert/update/remove/set`) di [`server/src/db.js`](../../server/src/db.js)
+   Antarmuka `db` (`all/insert/update/remove/set`) di `server/src/db.js`
    sengaja kecil supaya mudah ditukar ke DB relasional penuh.
 6. **Streaming (disarankan)**: `runConsult` sekarang non-streaming. Untuk balasan panjang,
    pindah ke `client.messages.stream(...)` + SSE ke frontend.
 7. **RAG (disarankan)**: ganti retriever kata kunci di
-   [`server/src/lib/rag.js`](../../server/src/lib/rag.js) dengan embedding + vector DB
+   `server/src/lib/rag.js` dengan embedding + vector DB
    bila korpus `kb.json` membesar.
 8. **Biaya**: pantau pemakaian token; turunkan `ANTHROPIC_MODEL` bila kualitas masih cukup.

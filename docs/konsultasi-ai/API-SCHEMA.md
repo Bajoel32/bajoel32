@@ -1,7 +1,7 @@
 # Skema & Diagram API — Srikandi
 
 Peta visual bagaimana frontend ([`src/`](../../src/)) terhubung ke backend
-([`server/`](../../server/)): env var apa mengarah ke endpoint apa, bentuk
+(`server/`): env var apa mengarah ke endpoint apa, bentuk
 request/response tiap endpoint, alur tiap fitur langkah-demi-langkah, dan
 bentuk data di penyimpanan JSON. Untuk checklist status & keamanan, lihat
 [BACKEND.md](BACKEND.md) dan [SECURITY.md](SECURITY.md) — dokumen ini fokus
@@ -87,7 +87,7 @@ flowchart TB
 
 ## 3. Endpoint — bentuk request & response
 
-Field lengkap ada di skema `zod` — [`server/src/lib/validate.js`](../../server/src/lib/validate.js).
+Field lengkap ada di skema `zod` — `server/src/lib/validate.js`.
 
 | # | Endpoint | Auth | Rate limit | Request | Response sukses |
 |---|---|---|---|---|---|

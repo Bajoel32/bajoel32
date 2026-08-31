@@ -5,8 +5,8 @@ Ringkasan pemeriksaan keamanan frontend **dan** backend (`server/`).
 ## Status saat ini
 
 Repo ini punya **frontend statis** (React + Vite) **dan backend** di
-[`server/`](../../server/) (Node + Express, penyimpanan JSON file — versi demo,
-lihat [BACKEND.md](BACKEND.md) untuk checklist lengkap & [server/README.md](../../server/README.md)
+`server/` (Node + Express, penyimpanan JSON file — versi demo,
+lihat [BACKEND.md](BACKEND.md) untuk checklist lengkap & `server/README.md`
 untuk detail struktur).
 
 > **Pass keamanan 2026-08-31** — pengerasan `/api/consult` (soft-gate sesi,
