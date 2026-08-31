@@ -69,6 +69,7 @@ web_modules/
 .env
 .env.*
 !.env.example
+!.env.*.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -141,3 +142,27 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# ---- Srikandi (Vite storefront) additions ----
+# Repo ini FRONTEND-ONLY. Backend (Node + Express) ada di repo terpisah.
+# Cegah working-copy server/ lokal (kode, .env, data/ berisi PII) ikut ter-commit.
+server/
+
+# Vite/local env & build variants
+*.local
+dist-ssr/
+build/
+
+# Editor / IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
