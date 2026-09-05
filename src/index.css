@@ -303,4 +303,75 @@ body {
       animation: none;
     }
   }
+
+  /* ---------------------------------------------------------------- */
+  /*  Tombol ajakan utama "Mulai Konsultasi" — bingkai emas mencolok  */
+  /*  + denyut cincin + napas halus. Sudut membulat penuh (pill).     */
+  /* ---------------------------------------------------------------- */
+  .cta-pulse {
+    position: relative;
+    border-radius: 9999px;
+    animation: cta-breathe 2.6s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  /* Bingkai emas tebal yang selalu tampak */
+  .cta-pulse::after {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: inherit;
+    border: 2px solid var(--color-gold-400);
+    pointer-events: none;
+  }
+
+  /* Cincin denyut yang menyebar keluar */
+  .cta-pulse::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: inherit;
+    pointer-events: none;
+    animation: cta-ring 2.6s ease-out infinite;
+  }
+
+  .cta-pulse:hover {
+    animation-play-state: paused;
+    transform: scale(1.04);
+  }
+  .cta-pulse:hover::before {
+    animation-play-state: paused;
+  }
+
+  @keyframes cta-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.035);
+    }
+  }
+
+  @keyframes cta-ring {
+    0% {
+      box-shadow: 0 0 0 0 rgba(197, 168, 128, 0.6);
+    }
+    70% {
+      box-shadow: 0 0 0 18px rgba(197, 168, 128, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(197, 168, 128, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-pulse {
+      animation: none;
+    }
+    .cta-pulse::before {
+      animation: none;
+      box-shadow: 0 0 0 6px rgba(197, 168, 128, 0.3);
+    }
+  }
 }

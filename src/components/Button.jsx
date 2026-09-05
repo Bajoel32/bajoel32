@@ -28,6 +28,8 @@ export default function Button({
     sm: 'px-6 py-2.5 text-[11px] tracking-[0.16em]',
     md: 'px-9 py-4 text-xs tracking-[0.18em]',
     lg: 'px-10 py-4.5 text-[13px] tracking-[0.2em]',
+    // Ajakan utama — membesar mengikuti lebar layar, teks ikut menyesuaikan
+    xl: 'px-[clamp(2.25rem,7vw,3.75rem)] py-[clamp(1rem,2.6vw,1.4rem)] text-[clamp(0.82rem,0.62rem+0.6vw,1.05rem)] tracking-[0.24em]',
   };
 
   return (
