@@ -53,7 +53,7 @@ export default function Card({
           {icon && !iconTile && <div className="text-2xl sm:text-3xl shrink-0 leading-none">{icon}</div>}
           <div className={`min-w-0 flex-1 ${textClassName}`}>
             {title && (
-              <h3 className="font-display text-xl sm:text-2xl font-semibold text-ink-900 truncate">
+              <h3 className="font-display text-xl sm:text-2xl font-semibold text-ink-900 line-clamp-2">
                 {title}
               </h3>
             )}

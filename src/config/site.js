@@ -10,7 +10,6 @@ export const siteConfig = {
     { label: 'Keunggulan', href: '#features' },
     { label: 'Koleksi', href: '#showcase' },
     { label: 'Lokasi', href: '#lokasi' },
-    { label: 'Layanan', href: '#contact' },
     { label: 'Kontak', href: '#contact' },
   ],
 
