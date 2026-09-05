@@ -5,6 +5,7 @@ export default function Hero({
   subtitle,
   description,
   image,
+  backdrop = null, // ReactNode rendered full-bleed behind the content (e.g. a responsive <picture>)
   primaryCTA = { text: 'Get Started', onClick: () => {} },
   secondaryCTA = { text: 'Learn More', onClick: () => {} },
   layout = 'centered', // 'centered', 'left', 'right', 'full'
@@ -26,7 +27,11 @@ export default function Hero({
   };
 
   const content = (
-    <div className={`flex flex-col ${layoutClasses[layout]}`}>
+    <div
+      className={`flex flex-col ${layoutClasses[layout]} ${
+        backdrop ? 'md:!max-w-lg' : ''
+      }`}
+    >
       <span className="mb-6 flex items-center gap-3">
         <span className="eyebrow-index">01</span>
         <span className="gold-rule" />
@@ -54,8 +59,21 @@ export default function Hero({
   );
 
   return (
-    <section className={`relative w-full overflow-hidden bg-cream-50 border-b border-cream-200 mt-26 sm:mt-29 ${sizeClasses[size]}`}>
-      <div className="fluid-shell relative">
+    <section
+      className={`relative isolate w-full overflow-hidden bg-cream-50 border-b border-cream-200 mt-26 sm:mt-29 ${
+        backdrop ? 'flex items-center min-h-[68vh] lg:min-h-[78vh]' : ''
+      } ${sizeClasses[size]}`}
+    >
+      {backdrop && (
+        <>
+          <div className="absolute inset-0">{backdrop}</div>
+          {/* Warm paper scrim — keeps the editorial ink text readable over the photo */}
+          <div className="absolute inset-0 bg-cream-50/78 sm:bg-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-cream-50 via-cream-50/85 to-cream-50/25 sm:via-cream-50/70 sm:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-cream-50/70 to-transparent" />
+        </>
+      )}
+      <div className="fluid-shell relative z-10 w-full">
         {showImage ? (
           <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-16">
             {imagePosition === 'left' && (
