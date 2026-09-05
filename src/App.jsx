@@ -47,6 +47,41 @@ export default function App() {
   );
 }
 
+/* Full-bleed hero photo — responsive WebP with JPG fallback, served at the
+   sharpest size each viewport can use (srcset picks; source is 5128×7689).
+   BASE_URL prefix keeps paths correct under the GitHub Pages sub-path. */
+const asset = (p) => `${import.meta.env.BASE_URL}${p}`;
+
+function HeroBackdrop() {
+  return (
+    <picture className="block h-full w-full">
+      <source
+        type="image/webp"
+        srcSet={[768, 1200, 1600, 2048, 2560]
+          .map((w) => `${asset(`hero/ring-${w}.webp`)} ${w}w`)
+          .join(', ')}
+        sizes="100vw"
+      />
+      <source
+        type="image/jpeg"
+        srcSet={[1200, 2048]
+          .map((w) => `${asset(`hero/ring-${w}.jpg`)} ${w}w`)
+          .join(', ')}
+        sizes="100vw"
+      />
+      <img
+        src={asset('hero/ring-2048.jpg')}
+        alt="Model mengenakan cincin emas Srikandi bermata persegi bertekstur payet"
+        className="!h-full !w-full object-cover object-[50%_30%] sm:object-[50%_28%]"
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+        draggable="false"
+      />
+    </picture>
+  );
+}
+
 /* Numbered section eyebrow: "01 —— Label" */
 function SectionEyebrow({ index, label, align = 'center', tone = 'dark' }) {
   const labelColor = tone === 'light' ? 'text-cream-200/70' : 'text-mute';
@@ -207,7 +242,8 @@ function HomePage({ setCurrentPage, mobileMenuOpen, setMobileMenuOpen }) {
           onClick: () => setCurrentPage('gallery'),
         }}
         size="compact"
-        layout="centered"
+        layout="left"
+        backdrop={<HeroBackdrop />}
       />
 
       {/* Quick actions, gold estimate & promo */}
@@ -283,18 +319,82 @@ function HomePage({ setCurrentPage, mobileMenuOpen, setMobileMenuOpen }) {
         </div>
       </section>
 
+      {/* Location Section */}
+      <section id="lokasi" className="section-y bg-cream-50 border-b border-cream-200">
+        <div className="fluid-shell">
+          <div className="flex flex-col items-center text-center mb-14 sm:mb-16">
+            <SectionEyebrow index="04" label="Lokasi" />
+            <h2 className="display-lg text-ink-900 mt-5 mb-4">Kunjungi Toko Kami</h2>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-[1fr_1.4fr] items-stretch">
+            <div className="flex flex-col justify-center rounded-2xl bg-white border border-cream-200 p-[clamp(1.5rem,4vw,2.5rem)]">
+              <h3 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900 mb-4">
+                {siteConfig.location.name}
+              </h3>
+              <p className="text-ink-600 leading-[1.7]">
+                {siteConfig.location.address}
+                <br />
+                {siteConfig.location.city}
+              </p>
+
+              <div className="mt-6">
+                <p className="eyebrow mb-2">Jam Buka</p>
+                <ul className="space-y-1.5 text-sm">
+                  {siteConfig.location.hours.map((h) => (
+                    <li key={h.day} className="flex justify-between gap-4 text-ink-700">
+                      <span>{h.day}</span>
+                      <span className="font-semibold text-ink-900">{h.time}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(siteConfig.location.coords)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="primary" size="md">Petunjuk Arah</Button>
+                </a>
+                <a href={siteConfig.location.mapsUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="md">Buka di Google Maps</Button>
+                </a>
+              </div>
+            </div>
+
+            <div className="rounded-2xl overflow-hidden border border-cream-200 bg-white min-h-72">
+              <iframe
+                title={`Peta lokasi ${siteConfig.location.name}`}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(siteConfig.location.coords)}&z=17&output=embed`}
+                className="w-full h-full min-h-72 border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section id="contact" className="relative section-y bg-ink-900 overflow-hidden">
         <div className="absolute inset-0 bg-gold-grid opacity-60" />
         <div className="fluid-shell relative max-w-3xl flex flex-col items-center text-center">
-          <SectionEyebrow index="04" label="Mulai Sekarang" tone="light" />
+          <SectionEyebrow index="05" label="Mulai Sekarang" tone="light" />
           <h2 className="display-xl text-cream-50 mt-5 mb-6">
             {siteConfig.cta.title}
           </h2>
           <p className="text-sm sm:text-base lg:text-lg text-cream-200/70 mb-10 max-w-xl mx-auto leading-[1.7]">
             {siteConfig.cta.subtitle}
           </p>
-          <Button variant="primary" size="lg" onClick={() => setCurrentPage('consult')} className="bg-cream-50 border-cream-50 text-ink-900">
+          <Button
+            variant="primary"
+            size="xl"
+            onClick={() => setCurrentPage('consult')}
+            className="cta-pulse bg-cream-50 border-cream-50 text-ink-900 hover:bg-gold-400 hover:border-gold-400"
+          >
             {siteConfig.cta.buttonText}
           </Button>
         </div>
@@ -333,9 +433,9 @@ function HomePage({ setCurrentPage, mobileMenuOpen, setMobileMenuOpen }) {
             </div>
           </div>
 
-          {/* Oversized watermark */}
+          {/* Oversized watermark — ukuran dijaga agar seluruh kata muat (tak terpotong) di layar sempit */}
           <div className="mt-16 border-t border-white/10 pt-8 overflow-hidden">
-            <p className="font-display uppercase tracking-[0.08em] text-cream-200/10 leading-[0.8] text-center text-[22vw] lg:text-[15rem] select-none pointer-events-none">
+            <p className="font-display uppercase tracking-[0.04em] text-cream-200/10 leading-[0.8] text-center whitespace-nowrap text-[13vw] sm:text-[14vw] lg:text-[15rem] select-none pointer-events-none">
               {siteConfig.brand.name}
             </p>
           </div>
