@@ -72,7 +72,7 @@ function HeroBackdrop() {
       <img
         src={asset('hero/ring-2048.jpg')}
         alt="Model mengenakan cincin emas Srikandi bermata persegi bertekstur payet"
-        className="!h-full !w-full object-cover object-[50%_42%] sm:object-[52%_46%]"
+        className="!h-full !w-full object-cover object-[50%_16%] sm:object-[50%_13%]"
         loading="eager"
         fetchPriority="high"
         decoding="async"
