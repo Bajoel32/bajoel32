@@ -197,36 +197,11 @@ instrumentation**. Answer quality is currently judged by eyeballing `consult_log
 ## 🏗️ System Architecture
 
 ```text
-                 ┌─────────────────────────── this repo ───────────────────────────┐
-  Customer ────► │  React + Vite storefront  (GitHub Pages)                         │
-                 │      │  fetch  POST /api/consult { messages[] }                   │
-                 └──────┼────────────────────────────────────────────────────────────┘
-                        ▼
-        ┌───────────────────────────── server/ (separate repo) ─────────────────────────┐
-        │  Express API                                                                  │
-        │   1. guard rail: screenInbound()      → blocked? canned reply                 │
-        │   2. RAG: retrieve()  ── keyword scorer over kb.json  → sources[]             │
-        │   3. gate: isMember && key && dailyBudget.tryConsume() ?                       │
-        │        ├─ yes → Claude Messages API + TOOLS  ⇄  tool loop (≤4 hops)           │
-        │        │            RUNNERS[name](input) → DB (json file | Postgres jsonb)    │
-        │        └─ no  → fallbackConsult()  (keyword, 0 cost)                          │
-        │   4. guard rail: sanitizeOutbound()   → redact / truncate                     │
-        │   5. log (PII-redacted)  ·  metrics++                                         │
-        │  { reply, sources?, functions?, escalate?, mode }                             │
-        └──────────────────────────────────────────────────────────────────────────────┘
-                        ▲
-   Admin/Manager ───────┘   /api/admin/*  (bcrypt session) — KB & content CRUD, RAG params, stats
-                             dedicated Admin Hub UI → planned
-```
+[ Customer Client ] ──► [ E-Commerce App + AI Chatbot ]
+                                │
+                                ▼
+                       [ RAG & Vector DB ] ◄──┐
+                                              │ (Update Knowledge & Functions)
+[ Admin / Manager ] ──► [    Admin Hub    ] ──┘
 
----
 
-## 📚 Docs
-
-| Doc | Contents |
-|---|---|
-| [DEVELOPMENT.md](DEVELOPMENT.md) | frontend: where to change what, styling, deploy |
-| [docs/konsultasi-ai/CHATBOT.md](docs/konsultasi-ai/CHATBOT.md) | `/api/consult` contract, tool schemas, escalation, RAG notes |
-| [docs/konsultasi-ai/API-SCHEMA.md](docs/konsultasi-ai/API-SCHEMA.md) | every endpoint, sequence diagrams, data model |
-| [docs/konsultasi-ai/SECURITY.md](docs/konsultasi-ai/SECURITY.md) | frontend + backend security posture, guard rails, open gaps |
-| [docs/konsultasi-ai/BACKEND.md](docs/konsultasi-ai/BACKEND.md) · [ORDERS-AUTH.md](docs/konsultasi-ai/ORDERS-AUTH.md) · [LANGKAH-PROSES.md](docs/konsultasi-ai/LANGKAH-PROSES.md) | backend checklist · order-portal auth · step-by-step setup |
