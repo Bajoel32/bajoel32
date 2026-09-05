@@ -61,16 +61,17 @@ export default function Hero({
   return (
     <section
       className={`relative isolate w-full overflow-hidden bg-cream-50 border-b border-cream-200 mt-26 sm:mt-29 ${
-        backdrop ? 'flex items-center min-h-[68vh] lg:min-h-[78vh]' : ''
+        backdrop ? 'flex items-center min-h-[68vh] lg:min-h-[max(80vh,50vw)]' : ''
       } ${sizeClasses[size]}`}
     >
       {backdrop && (
         <>
           <div className="absolute inset-0">{backdrop}</div>
-          {/* Warm paper scrim — keeps the editorial ink text readable over the photo */}
-          <div className="absolute inset-0 bg-cream-50/78 sm:bg-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-cream-50 via-cream-50/85 to-cream-50/25 sm:via-cream-50/70 sm:to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-cream-50/70 to-transparent" />
+          {/* Warm paper scrim — heavy on mobile (text over photo), just a soft
+              left-edge fade on sm+ where the text sits over the plain backdrop. */}
+          <div className="absolute inset-0 bg-cream-50/78 sm:hidden" />
+          <div className="absolute inset-0 bg-gradient-to-t from-cream-50/70 to-transparent sm:hidden" />
+          <div className="absolute inset-0 bg-gradient-to-r from-cream-50 from-5% via-cream-50/85 via-30% to-cream-50/25 sm:via-cream-50/45 sm:via-40% sm:to-transparent sm:to-62%" />
         </>
       )}
       <div className="fluid-shell relative z-10 w-full">
