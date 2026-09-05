@@ -47,6 +47,41 @@ export default function App() {
   );
 }
 
+/* Full-bleed hero photo — responsive WebP with JPG fallback, served at the
+   sharpest size each viewport can use (srcset picks; source is 5128×7689).
+   BASE_URL prefix keeps paths correct under the GitHub Pages sub-path. */
+const asset = (p) => `${import.meta.env.BASE_URL}${p}`;
+
+function HeroBackdrop() {
+  return (
+    <picture className="block h-full w-full">
+      <source
+        type="image/webp"
+        srcSet={[768, 1200, 1600, 2048, 2560]
+          .map((w) => `${asset(`hero/ring-${w}.webp`)} ${w}w`)
+          .join(', ')}
+        sizes="100vw"
+      />
+      <source
+        type="image/jpeg"
+        srcSet={[1200, 2048]
+          .map((w) => `${asset(`hero/ring-${w}.jpg`)} ${w}w`)
+          .join(', ')}
+        sizes="100vw"
+      />
+      <img
+        src={asset('hero/ring-2048.jpg')}
+        alt="Model mengenakan cincin emas Srikandi bermata persegi bertekstur payet"
+        className="!h-full !w-full object-cover object-[50%_42%] sm:object-[52%_46%]"
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+        draggable="false"
+      />
+    </picture>
+  );
+}
+
 /* Numbered section eyebrow: "01 —— Label" */
 function SectionEyebrow({ index, label, align = 'center', tone = 'dark' }) {
   const labelColor = tone === 'light' ? 'text-cream-200/70' : 'text-mute';
@@ -207,7 +242,8 @@ function HomePage({ setCurrentPage, mobileMenuOpen, setMobileMenuOpen }) {
           onClick: () => setCurrentPage('gallery'),
         }}
         size="compact"
-        layout="centered"
+        layout="left"
+        backdrop={<HeroBackdrop />}
       />
 
       {/* Quick actions, gold estimate & promo */}
