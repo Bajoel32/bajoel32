@@ -75,7 +75,7 @@ function HeroBackdrop() {
         className="!h-full !w-full object-cover object-[50%_30%] sm:object-[50%_28%]"
         loading="eager"
         fetchPriority="high"
-        decoding="async"
+        decoding="sync"
         draggable="false"
       />
     </picture>
