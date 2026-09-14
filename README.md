@@ -2,6 +2,8 @@
 
 **🌐 Live site:** <https://bajoel32.github.io/bajoel32/>
 
+> **Status (14 Sep 2026).** The sections below describe the earlier `server/` backend (Node + Express + Anthropic Claude). What is **actually deployed today** is PostgreSQL + a single Supabase Edge Function `api` — repo [`Bajoel32/srikandi-backend`](https://github.com/Bajoel32/srikandi-backend) — with the assistant running on **Google Gemini** (`gemini-3.5-flash`). There is **no Admin Hub**: day-to-day operations are done from the Supabase dashboard. `cekStatusPesanan` now requires a **logged-in customer session** rather than name + phone verification. The architecture, RAG and guard-rail write-ups below are kept as a design record.
+
 A storefront for a gold & jewellery shop (Toko Emas Srikandi, Palangka Raya) with an
 **AI consultation assistant** built on **Anthropic Claude** — retrieval-augmented answers
 over a curated knowledge base, **function/tool calling** into store data, a **4-layer
