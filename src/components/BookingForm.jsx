@@ -78,6 +78,8 @@ export default function BookingForm({ services = [] }) {
     try {
       const payload = { ...formData };
       delete payload.website;
+      const service = services.find((s) => String(s.id) === String(formData.selectedService));
+      payload.serviceName = service?.name || '';
 
       const endpoint = import.meta.env.VITE_BOOKINGS_API;
       if (endpoint) {
