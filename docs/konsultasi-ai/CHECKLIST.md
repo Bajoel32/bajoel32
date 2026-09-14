@@ -1,3 +1,5 @@
+> **Status dokumen (14 Sep 2026).** Dokumen ini menjelaskan backend lama `server/` (Node + Express + Anthropic Claude) yang **sudah tidak dipakai lagi**. Sistem yang berjalan sekarang: PostgreSQL + satu Edge Function `api` di Supabase, repo [`Bajoel32/srikandi-backend`](https://github.com/Bajoel32/srikandi-backend). Asisten AI memakai **Google Gemini** (`gemini-3.5-flash`), base URL endpoint `https://<project-ref>.supabase.co/functions/v1/api`, dan **tidak ada admin hub** (`/api/admin/*`) — operasional harian dilakukan lewat dashboard Supabase. Tool `cekStatusPesanan` kini **wajib sesi login konsumen**, bukan verifikasi nama + HP. Isi di bawah disimpan sebagai catatan desain, bukan deskripsi sistem yang berjalan.
+
 # Checklist — Mengaktifkan "Mulai Konsultasi" sebagai Chatbot AI
 
 Legenda: `[ ]` belum · `[x]` selesai · `[~]` sebagian / perlu perhatian

@@ -1,3 +1,5 @@
+> **Document status (14 Sep 2026).** This document describes the earlier `server/` backend (Node + Express + Anthropic Claude), which is **no longer in use**. The system running today is PostgreSQL + a single Supabase Edge Function `api`, in the separate repo [`Bajoel32/srikandi-backend`](https://github.com/Bajoel32/srikandi-backend). The assistant runs on **Google Gemini** (`gemini-3.5-flash`), the endpoint base URL is `https://<project-ref>.supabase.co/functions/v1/api`, and there is **no admin hub** (`/api/admin/*`) — day-to-day operations are done from the Supabase dashboard. The `cekStatusPesanan` tool now requires a **logged-in customer session** instead of name + phone verification. Everything below is kept as a design record, not as a description of the live system.
+
 # API Schema & Diagrams — Srikandi
 
 *(English version of [API-SCHEMA.md](API-SCHEMA.md) — the Indonesian file is the
