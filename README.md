@@ -1,6 +1,6 @@
 <div align="center">
 
-# Srikandi: Jewellery Storefront with a RAG Consultation Assistant
+# Srikandi: Jewellery Storefront with a RAG + Gemini Consultation Assistant
 
 **A real storefront for Toko Emas Srikandi, a gold and jewellery shop in Palangka Raya. It covers the catalogue, service bookings, a private order portal and an AI assistant grounded in the shop's own knowledge base, with an eval harness to back it up.**
 
