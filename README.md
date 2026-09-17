@@ -74,7 +74,7 @@ Function, which holds the service-role key and the Gemini API key.
 ## How the assistant works
 
 ```mermaid
-flowchart LR
+flowchart TD
     U[Customer] -->|chat| FE[Storefront<br/>React]
     FE -->|POST /consult<br/>+ Bearer if logged in| API[Edge Function api]
     API -->|PII / complaint<br/>pre-filter| G{Guard rails}
