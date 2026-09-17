@@ -1,209 +1,239 @@
-# 🪙 Srikandi — Jewelry Storefront with an AI Consultation Assistant
+<div align="center">
 
-**🌐 Live site:** <https://bajoel32.github.io/bajoel32/>
+# Srikandi: Jewellery Storefront with a RAG Consultation Assistant
 
-> **Status (14 Sep 2026).** The sections below describe the earlier `server/` backend (Node + Express + Anthropic Claude). What is **actually deployed today** is PostgreSQL + a single Supabase Edge Function `api` — repo [`Bajoel32/srikandi-backend`](https://github.com/Bajoel32/srikandi-backend) — with the assistant running on **Google Gemini** (`gemini-3.5-flash`). There is **no Admin Hub**: day-to-day operations are done from the Supabase dashboard. `cekStatusPesanan` now requires a **logged-in customer session** rather than name + phone verification. The architecture, RAG and guard-rail write-ups below are kept as a design record.
+**A real storefront for Toko Emas Srikandi, a gold and jewellery shop in Palangka Raya. It covers the catalogue, service bookings, a private order portal and an AI assistant grounded in the shop's own knowledge base, with an eval harness to back it up.**
 
-A storefront for a gold & jewellery shop (Toko Emas Srikandi, Palangka Raya) with an
-**AI consultation assistant** built on **Anthropic Claude** — retrieval-augmented answers
-over a curated knowledge base, **function/tool calling** into store data, a **4-layer
-guard rail**, and hard **cost controls**.
+[![Storefront](https://img.shields.io/badge/Storefront-bajoel32.github.io-b8913a?style=for-the-badge&logo=githubpages&logoColor=white)](https://bajoel32.github.io/bajoel32/)
+[![Admin panel](https://img.shields.io/badge/Admin_panel-srikandi--admin.vercel.app-111?style=for-the-badge&logo=vercel&logoColor=white)](https://srikandi-admin.vercel.app/)
 
-> **Scope of this repo:** the **storefront frontend** (`src/`, React + Vite, deployed to
-> GitHub Pages). The Express **API / AI backend** (`server/`) is developed in a separate
-> repo — code references to `server/…` in the docs point there. See
-> [DEVELOPMENT.md](DEVELOPMENT.md) for the frontend guide and
-> [docs/konsultasi-ai/](docs/konsultasi-ai/) for the full backend contract.
+![React](https://img.shields.io/badge/React-19-149eca?logo=react)
+![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?logo=tailwindcss&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Postgres_%2B_Edge_Functions-3ecf8e?logo=supabase&logoColor=white)
+![pgvector](https://img.shields.io/badge/pgvector-RAG-336791?logo=postgresql&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini-3.5_Flash-4285f4?logo=googlegemini&logoColor=white)
+![Eval](https://img.shields.io/badge/offline_eval-15%2F15-2ea44f)
 
----
+[Backend repo](https://github.com/Bajoel32/srikandi-backend) · [Eval harness](https://github.com/Bajoel32/srikandi-backend/tree/main/eval) · [Incident write-up](https://github.com/Bajoel32/srikandi-backend/blob/main/docs/incidents/2026-09-16-gemini-503.md) · [Frontend guide](DEVELOPMENT.md)
 
-## 📸 Screenshots
+![Srikandi storefront](docs/screenshots/home.jpg)
 
-| Home | Catalogue |
-|---|---|
-| ![Home](docs/screenshots/home.png) | ![Gallery](docs/screenshots/gallery.png) |
+</div>
 
-| **AI Consultation** — RAG answer + a `infoLayanan` tool-result card + retrieved source | Booking / service request |
-|---|---|
-| ![Consultation](docs/screenshots/consultation.png) | ![Booking](docs/screenshots/booking.png) |
+## Overview
 
-*(The standalone Admin Hub is a separate app and is not yet built/deployed — no screenshot.)*
+Srikandi is a working website for a physical gold and jewellery shop. I own the
+shop and built the site myself. It is split across three deployables:
 
----
+| Part | What it is | Where |
+| --- | --- | --- |
+| **Storefront** (this repo) | React + Vite single-page app for customers | [GitHub Pages](https://bajoel32.github.io/bajoel32/) |
+| **Backend** | PostgreSQL with RLS, plus one Supabase Edge Function `api` (Deno/TypeScript) | [`Bajoel32/srikandi-backend`](https://github.com/Bajoel32/srikandi-backend) |
+| **Admin panel** | Booking inbox for shop staff, using Supabase Auth (magic link) and an `admin_users` allow-list | [srikandi-admin.vercel.app](https://srikandi-admin.vercel.app/) |
 
-## 🌟 What it does
+The browser never holds a secret. Every read and write goes through the Edge
+Function, which holds the service-role key and the Gemini API key.
 
-### Customer-facing (this repo)
-* **Catalogue** — collections, category filter + search, gold-purity / weight, a
-  **manually-maintained gold-price estimate** card (clearly labelled *not* a live feed).
-* **Order portal** — phone + password (bcrypt) login, per-customer order tracking.
-* **Service booking** — validated form with an anti-bot honeypot.
-* **AI Consultation assistant** — chat UI backed by `POST /api/consult`
-  (RAG + Claude tool-calling, with a zero-cost keyword fallback).
+## Features
 
-### Backend (separate repo — `server/`)
-* Express API: bookings, auth/sessions, orders, gallery, `/api/consult`, `/api/admin/*`.
-* AES-256-GCM **encryption at rest** for customer collections; PII retention sweeper.
-* **Admin Hub API** (`/api/admin/*`, bcrypt-session) — CRUD for the knowledge base,
-  services and gallery; RAG parameter tuning; a stats endpoint. A dedicated admin
-  **frontend** app is planned, not built.
+### For customers
 
----
+- **Catalogue.** Collections with category filter, search and item details
+  (price, tags, uploader). Items are served from the `gallery` table. The gold-price card is a
+  manually maintained estimate and is clearly labelled as not live.
+- **Service booking ("Buat Janji").** Customers pick a service (Cuci Emas,
+  Pasang Berlian, Patri Emas, Chrome Putih, Pemurnian Emas, custom orders),
+  quantity, target date and payment preference (DP / Lunas / Cicilan). The form
+  is validated on both client and server, has a honeypot field, and is limited
+  to 8 submissions per hour per IP.
+- **Private order portal.** Customers log in with a phone number and access
+  code (bcrypt-hashed) and see only their own orders and progress. Sessions last
+  12 hours, and the database stores only the SHA-256 of each token.
+- **AI consultation assistant.** A chat that answers from the shop's knowledge
+  base and live database. It can show service and gallery cards, check the
+  status of a logged-in customer's order, and hand off to the shop's WhatsApp
+  when a human is needed.
 
-## 🧠 AI / LLM Tech Stack
+### For staff
 
-| Concern | What is actually used | Notes |
-|---|---|---|
-| **LLM provider** | **Anthropic Claude** via **`@anthropic-ai/sdk` `^0.32`** | server-side only; the key never reaches the browser |
-| **API surface** | **Messages API** — `client.messages.create({ system, tools, messages })`, non-streaming, `max_tokens: 1024` | streaming (SSE) is on the roadmap |
-| **Model** | `ANTHROPIC_MODEL` env — default **`claude-opus-5`**; `claude-sonnet-5` / `claude-haiku-4-5` for lower cost | swappable without code changes |
-| **Orchestration framework** | **None** — a hand-rolled tool-use loop (max **4 hops**) in `server/src/lib/claude.js` | deliberate: no LangChain / LlamaIndex; the whole backend has 9 runtime deps |
-| **Retriever** | **Keyword / bag-of-words** scorer over the `kb` collection (`server/src/lib/rag.js`) | **no embeddings, no vector DB** — see [RAG Pipeline](#-rag-pipeline) and [Roadmap](#-observability--evaluation) |
-| **Embedding model** | *none yet* | roadmap item |
-| **Vector store** | *none yet* — knowledge base is JSON (dev) or a Postgres `jsonb` blob | roadmap: pgvector / Qdrant |
-| **Fallback path** | `fallbackConsult()` — regex/keyword matching, **0 API cost** | serves anonymous users, missing-key, and over-budget requests |
-| **Guard rails** | 4 layers (client input, server prompt-injection screen, prompt hardening, output redaction) | [details below](#-llm-safety--cost-controls) |
-| **Cost controls** | soft-gate (LLM only for logged-in members) · persisted daily call budget · layered rate limits | [details below](#-llm-safety--cost-controls) |
+- **Booking admin panel.** New bookings land in an inbox with the statuses
+  *Baru → Diproses → Selesai / Dibatalkan*. Staff can search by name or phone,
+  view details, contact the customer on WhatsApp, and reopen a booking. Access is
+  restricted by row-level security to emails listed in `admin_users`. The panel
+  was designed for shop staff who are not technical.
+- **Sales upload gate.** Staff with the shared sales key can add catalogue
+  items straight from the gallery page. The key is sent as SHA-256 and stored
+  server-side as a hash of that hash.
+- **Customer-knowledge loop.** Recurring customer questions (DP rules, bank
+  transfers, name pendants, ring sizing, shipping) are written up as
+  `knowledge_docs` and embedded for retrieval. Every chat turn is stored in
+  `consult_logs` (question, answer, whether it escalated), so gaps in the
+  knowledge base show up from real traffic.
 
-Frontend: **React 19 + Vite 8 + Tailwind CSS v4**. Backend: **Node + Express 4**, `zod`,
-`helmet`, `express-rate-limit`, `bcryptjs`, `pg`.
+## How the assistant works
 
----
-
-## 🔍 RAG Pipeline
-
-**Knowledge base.** A curated JSON array — `server/data/kb.json` — seeded with ~12 entries,
-each of shape:
-
-```json
-{ "id": 7, "title": "Kebijakan pembatalan", "text": "Pembatalan dapat dilakukan dalam 24 jam …", "url": null }
+```mermaid
+flowchart LR
+    U[Customer] -->|chat| FE[Storefront<br/>React]
+    FE -->|POST /consult<br/>+ Bearer if logged in| API[Edge Function api]
+    API -->|PII / complaint<br/>pre-filter| G{Guard rails}
+    G -->|complaint| WA[WhatsApp hand-off<br/>no LLM call]
+    G -->|ok| EMB[Gemini embedding<br/>1536-d]
+    EMB --> KB[(knowledge_docs<br/>pgvector cosine)]
+    KB -->|top-4, similarity ≥ 0.5| LLM[Gemini 3.5 Flash<br/>+ function calling]
+    LLM <-->|tools| DB[(gallery · orders<br/>services)]
+    LLM --> API
+    API -->|reply + cards + sources| FE
+    API --> LOG[(consult_logs)]
 ```
 
-**Chunking / indexing.** There is no automated splitter: **each KB entry *is* one chunk**
-(1–3 sentences, authored by hand or via the Admin Hub). Kept deliberately short so a
-keyword match maps cleanly to a self-contained answer. No embeddings are computed;
-"indexing" is just loading the array into memory on boot.
+1. **Guard rails run before the model.** The browser rejects gibberish,
+   floods and personal data such as ID numbers, cards, emails and phone numbers.
+   The server checks again. Complaint and refund keywords are escalated to
+   WhatsApp without calling the LLM, so they cost no tokens.
+2. **Retrieval.** The question is embedded with `gemini-embedding-001` at 1536
+   dimensions and matched against `knowledge_docs` with the
+   `match_knowledge_docs` RPC (pgvector, cosine). If embedding fails, the
+   assistant still answers, only without document context.
+3. **Tool calling.** Gemini chooses from four tools that read the database:
 
-**Retrieval algorithm** (`retrieve(query)` in `server/src/lib/rag.js`):
+   | Tool | Purpose | Guard |
+   | --- | --- | --- |
+   | `infoLayanan` | List the shop's services | — |
+   | `rekomendasiGaleri` | Search the catalogue by keyword, category or max price | Published items only |
+   | `cekStatusPesanan` | Progress of an order | **Logged-in session only**; never reveals whether an order number exists |
+   | `hubungiAdmin` | Hand off to a human | Returns a WhatsApp deep link |
 
-1. **Tokenise** the query — lowercase → strip non-alphanumerics → split on whitespace →
-   drop tokens ≤ 2 chars and ~22 Indonesian/English stop-words (`yang`, `dan`, `apa`, `the`, …).
-2. **Score every KB entry** — build a token set for `title + text` and a set for `title` only:
-   `+1.0` per query token found in the body set, `+1.5` if it is also in the title set.
-3. **Filter** `score ≥ minScore` (default **0.5**), sort descending, take the top **`topK`**
-   (default **4**). `topK` and `minScore` are runtime-tunable from the Admin Hub
-   (`settings` collection, key `rag`).
-4. Return each hit as `{ title, snippet: text.slice(0, 240), url }` — surfaced to the user
-   under an **"N Sources"** disclosure in the chat UI.
+4. **Grounding rules.** The system prompt forbids inventing prices, lead
+   times, gold purity or stock. It never shares bank account numbers and never
+   asks for access codes in chat. Replies are limited to four sentences in
+   Indonesian.
+5. **Resilience.** Gemini 429 and 5xx errors and network failures are retried
+   with backoff within a 30-second budget, with an optional fallback model. If
+   all of that fails, the customer gets an "assistant is busy" reply with a
+   WhatsApp button instead of an HTTP 500.
 
-**Prompt assembly.** The retrieved snippets are injected as a `KONTEKS` block in a leading
-user turn; the system prompt instructs the model to answer **only** from that context or
-the tool results, and to escalate otherwise.
+## Evaluation harness
 
----
+Changing a prompt or model can break behaviour without breaking any unit
+test, so the backend ships a zero-dependency eval harness
+([`eval/`](https://github.com/Bajoel32/srikandi-backend/tree/main/eval)) that
+runs as a CI-style regression gate. It exits with code 1 on any failure.
 
-## 🛠️ Function Calling
+| | `run.mjs` (live) | `offline.mjs` |
+| --- | --- | --- |
+| Tests | How the **model** behaves in production | How the **code** around the model behaves |
+| Gemini and Supabase | Real | Deterministic fakes, with injectable 503, 429 and network errors |
+| Cases | 20 golden cases + optional LLM-as-judge (`--judge`) for groundedness | 15 cases |
+| Cost | 1 Gemini call per case | Free, about 10 s |
 
-Four tools are registered (`TOOLS` array in `server/src/lib/claude.js`); Claude decides when
-to call them, the backend runs a **pure local function** (`RUNNERS` map) against the DB,
-returns the result as a `tool_result` block, and loops until `end_turn` (≤ 4 hops).
+**What it measures:** `grounding` (no invented prices or stock), `tool-use`,
+`auth` (no order-status leaks, no order-number enumeration), `guardrail`
+(escalation, PII blocking, prompt injection), `format`, `rag` (facts from
+`knowledge_docs` reach the answer), `resilience` and `tool-loop`.
 
-| Tool | Purpose | Guard |
-|---|---|---|
-| `infoLayanan` | list service types (no prices) | — |
-| `cekStatusPesanan` | one order's status & progress | **ownership check** — order no. + orderer name + registered phone must all match |
-| `rekomendasiGaleri` | gallery items by category / max budget | — |
-| `eskalasiKeAdmin` | hand off to a human | result is mapped to an `escalate` field → WhatsApp deep link |
+**Latest results (16 Sep 2026)** — full write-up in
+[`RESULTS.md`](https://github.com/Bajoel32/srikandi-backend/blob/main/eval/RESULTS.md):
 
-Example — the `input_schema` for `cekStatusPesanan` (JSON Schema, verbatim from the code):
+| Harness | Target | Result |
+| --- | --- | --- |
+| `offline.mjs` | `consult.ts` **before** the resilience fix | 9 / 15 |
+| `offline.mjs` | `consult.ts` **after** the fix (production) | **15 / 15** |
+| `run.mjs` | Production, during a Gemini overload | 8 / 20 passed · 1 behavioural failure · 11 not measurable (Gemini busy or backend rate limit) |
 
-```jsonc
-{
-  "name": "cekStatusPesanan",
-  "description": "Status & progres satu pesanan. WAJIB verifikasi kepemilikan: butuh nomorPesanan (SR-NNN-YYYY) + nama pemesan + hp terdaftar. Tanpa nama & hp yang cocok, tool balas needVerification/mismatch tanpa detail — jangan sebut apa pun soal pesanan itu.",
-  "input_schema": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "nomorPesanan": { "type": "string", "pattern": "^SR-\\d{3}-\\d{4}$" },
-      "nama": { "type": "string", "description": "Nama pemesan sesuai data pesanan." },
-      "hp":   { "type": "string", "description": "Nomor HP yang terdaftar pada pesanan." }
-    },
-    "required": ["nomorPesanan"]
-  }
-}
-```
+Findings from these runs that fed back into the code:
 
-Return shapes: `{ orderNumber, customerName, status, progress, goldPurity }` on a full
-match, otherwise `{ notFound }` / `{ needVerification }` / `{ mismatch }` — the model is
-instructed to reveal **nothing** about an order until verification passes. The same rule is
-enforced in the keyword fallback path. Full contract:
-[docs/konsultasi-ai/CHATBOT.md](docs/konsultasi-ai/CHATBOT.md).
+- **Order-number enumeration.** For an existing order number and a missing one,
+  the assistant used to give different replies (`notFound` vs
+  `needVerification`). That difference was enough to probe `SR-001` through
+  `SR-999`. It is fixed, and two eval cases now require the two replies to be
+  indistinguishable.
+- **Gemini 503 incident.** An overloaded model caused an HTTP 500, and the
+  frontend fell back to a static answer that showed ring prices in response to
+  "I don't know my ring size". This led to retry, fallback and busy-reply
+  handling, plus resilience cases that fail against the old code.
+  [Incident report →](https://github.com/Bajoel32/srikandi-backend/blob/main/docs/incidents/2026-09-16-gemini-503.md)
+- **Similarity threshold is probably too loose.** An off-topic question still
+  retrieved four documents at 0.53–0.56 similarity. The note in `RESULTS.md`
+  proposes about 0.6, pending more samples.
+- **Latency.** Answers that go through the model took 9.6–28.4 s (median about
+  19 s). Guard-rail paths return in under 2 s.
 
----
+## Tech stack
 
-## 🛡️ LLM Safety & Cost Controls
+| Layer | Tools |
+| --- | --- |
+| Storefront | React 19, Vite 8, Tailwind CSS v4, oxlint |
+| Backend | Supabase Postgres (RLS on every table), Edge Functions (Deno + TypeScript) |
+| AI | Gemini `gemini-3.5-flash` (function calling), `gemini-embedding-001`, pgvector |
+| Admin | React on Vercel, Supabase Auth magic link, `admin_users` RLS |
+| CI/CD | GitHub Actions deploys the storefront to Pages and the Edge Function to Supabase; Vercel deploys the admin panel |
 
-**4-layer guard rail** (details in [docs/konsultasi-ai/SECURITY.md](docs/konsultasi-ai/SECURITY.md) §3):
-
-| Layer | Where | Does |
-|---|---|---|
-| Input — client | `src/config/guardrails.js` | reject gibberish / >50 % symbols / a char repeated ≥ 10× · block PII (16-digit ID no., 13–19-digit card, email, ID phone) · anti-flood (identical to one of the last 3 turns) · strip control + zero-width chars |
-| Input — server | `server/src/lib/guardrails.js` → `screenInbound()` | 13 prompt-injection / jailbreak patterns (ID + EN) on the last user turn → canned reply, **never forwarded to the model**, `mode: "blocked"`, `guardBlocks` counter |
-| Prompt hardening | `SYSTEM` prompt in `claude.js` | message content is treated as **data, not instructions**; never disclose the system prompt / tool names; topic-locked to Srikandi |
-| Output | `server/src/lib/guardrails.js` → `sanitizeOutbound()` | truncate a reply > 2000 chars · redact `sk-ant-…` / `sk-…` / 64-hex / `ANTHROPIC_API_KEY` → `[disamarkan]` · replace the whole reply if it echoes a system-prompt telltale |
-
-**Cost controls:**
-
-* **Soft-gate** — Claude is only called for a **logged-in customer session**
-  (`optionalAuth` + `isMember`). Anonymous visitors still get the assistant, served by the
-  **zero-cost keyword fallback**. Every response carries `mode: "live" | "fallback" | "blocked"`.
-* **Daily LLM budget** — `CONSULT_DAILY_LLM_BUDGET` (default **300** real calls/day),
-  counted in the DB (`counters` collection) so it **survives a process restart**. Over
-  budget → everyone drops to the fallback until the date rolls over.
-* **Layered rate limits** — `8 / min / IP` **and** `40 / day / sender` (keyed by session
-  token when logged in, else IP).
-* **Logs are PII-redacted** — `consult_logs` keeps the last 200 turns with `redactPii()`
-  applied to `question` and `replyPreview` (phones, emails, ≥ 12-digit runs → placeholders).
-
----
-
-## 📊 Observability & Evaluation
-
-**Instrumented today** (`server/src/lib/metrics.js`, in-memory, reset on restart), exposed
-at `GET /api/admin/stats`:
-
-* `consultCalls`, `consultToday`, `escalations`
-* `ragQueries`, `avgRagSources` (mean retrieved snippets per answer)
-* `guardBlocks` (prompt-injection screen hits), `rateLimited`, `errors5xx`
-* `llmCallsToday` vs `llmDailyBudget`
-* Plus **`consult_logs`** — the last 200 redacted transcripts (`question`, `replyPreview`,
-  `mode`, `member`, `escalated`, `sources`, `turns`, `at`) for **manual** quality review in
-  the Admin Hub.
-
-**Not yet measured — honest gap:** there is **no automated evaluation** and **no latency
-instrumentation**. Answer quality is currently judged by eyeballing `consult_logs`.
-
-### 🧭 Roadmap
-
-| Area | Plan |
-|---|---|
-| **Retrieval** | replace the keyword scorer with **embeddings + a vector store** (pgvector or Qdrant), an explicit chunker for longer docs, and hybrid (dense + BM25) ranking |
-| **Evaluation** | a golden Q&A set; **groundedness / faithfulness** scoring of each answer against its retrieved `sources`; a hallucination-rate metric; an **LLM-as-judge** rubric; a regression gate in CI |
-| **Latency & cost** | per-turn wall-time **p50 / p95**, tokens in/out, and **$ per conversation** — surfaced in `/api/admin/stats` and alertable |
-| **UX** | **streaming** responses (SSE) instead of one blocking JSON |
-| **Admin Hub** | build the dedicated `srikandi-admin` frontend on top of the existing `/api/admin/*` routes |
-
----
-
-## 🏗️ System Architecture
+## Project structure (this repo)
 
 ```text
-[ Customer Client ] ──► [ E-Commerce App + AI Chatbot ]
-                                │
-                                ▼
-                       [ RAG & Vector DB ] ◄──┐
-                                              │ (Update Knowledge & Functions)
-[ Admin / Manager ] ──► [    Admin Hub    ] ──┘
+src/
+├── App.jsx                     # Page routing and layout
+├── components/
+│   ├── BookingPage.jsx         # Booking page + FAQ
+│   ├── BookingForm.jsx         # Validated booking form (honeypot, length caps)
+│   ├── ConsultationPage.jsx    # AI chat UI: tool cards, sources, WhatsApp escalation
+│   ├── OrdersPage.jsx          # Login + customer's own orders
+│   ├── GalleryPage.jsx         # Catalogue, filters, detail view
+│   ├── SalesPanel.jsx          # Staff upload gate
+│   └── …                       # Hero, GoldPriceCard, PromoCarousel, BottomNav, …
+└── config/
+    ├── site.js                 # Brand copy, services, static fallback data
+    ├── gallery.js · orders.js · consultation.js   # API clients (fall back to static data)
+    └── guardrails.js           # Client-side input checks (PII, gibberish, flood)
+docs/
+├── screenshots/
+└── konsultasi-ai/              # Design record of the earlier Express/Claude backend (legacy)
+```
 
+## Running locally
 
+```bash
+npm install
+npm run dev          # http://localhost:5173/bajoel32/
+```
+
+With no environment variables, every feature falls back to static or dummy
+data, so the UI works offline. To connect to the real backend, copy
+`.env.example` to `.env.local`:
+
+```bash
+VITE_GALLERY_API=https://<project-ref>.supabase.co/functions/v1/api/gallery
+VITE_BOOKINGS_API=https://<project-ref>.supabase.co/functions/v1/api/bookings
+VITE_CONSULT_API=https://<project-ref>.supabase.co/functions/v1/api/consult
+VITE_ORDERS_API=https://<project-ref>.supabase.co/functions/v1/api
+```
+
+Backend setup (migrations, secrets, deploy) is covered in the
+[backend README](https://github.com/Bajoel32/srikandi-backend#readme).
+
+### Deployment
+
+- **GitHub Pages.** Pushing to `main` runs `.github/workflows/deploy.yml`. The
+  repo variable `SUPABASE_FUNCTIONS_URL` supplies the four `VITE_*_API` values.
+  If the variable is empty, the site still builds on static data.
+- **Vercel.** `vercel.json` builds with `--base=/` and adds an SPA rewrite.
+
+## Screenshots
+
+| Catalogue | AI consultation | Booking |
+| --- | --- | --- |
+| ![Gallery](docs/screenshots/gallery.png) | ![Consultation](docs/screenshots/consultation.png) | ![Booking](docs/screenshots/booking.png) |
+
+## Legacy design docs
+
+[`docs/konsultasi-ai/`](docs/konsultasi-ai/) documents the first backend
+design: Express, Anthropic Claude, a keyword retriever and a planned Admin Hub.
+Production has since moved to Supabase + Gemini + pgvector, as described above.
+Those documents are kept as a design record and are marked as legacy.
+
+## Author and license
+
+Built by **Muhammad Aswan** ([@Bajoel32](https://github.com/Bajoel32)), owner of Toko Emas Srikandi.
+Released under the [MIT License](LICENSE).
